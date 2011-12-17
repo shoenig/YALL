@@ -62,6 +62,8 @@ eval_f(AST* tree) {
   case 'F': f = ((floatval*)tree)->fnumber; break;
     /* int */
   case 'I': f = ((float) ((intval*)tree)->inumber); break;
+    /* unary minus */
+  case 'M': f = -eval_f(tree->left); break;
     /* expressions (int is upgrtreeded to float) */
   case '+': f = eval_f(tree->left) + eval_f(tree->right); break;
   case '-': f = eval_f(tree->left) - eval_f(tree->right); break;
@@ -90,6 +92,8 @@ eval_i(AST* tree) {
   case 'F': i = ((int) ((floatval*)tree)->fnumber); break;
     /* int */
   case 'I': i = ((intval*)tree)->inumber; break;
+    /* unary minus */
+  case 'M': i = -eval_i(tree->left); break;
   /* expressions (float is downgraded to int...) */
   case '+': i = eval_i(tree->left) + eval_i(tree->right); break;
   case '-': i = eval_i(tree->left) - eval_i(tree->right); break;

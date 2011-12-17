@@ -16,6 +16,6 @@ main(int argc, char** argv) {
 
   printf("> ");
   int parse = yyparse(); // yee-haw!!
-  
+  printf("\nBye.\n");
   return parse;
 }

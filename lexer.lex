@@ -79,6 +79,11 @@ FEXP  ([Ee][-+]?[0-9]+)
   printf("c> ");
 }
 
+  /* PI */
+"PI" {
+  return PI;
+}
+
   /* end of line */
 \n {
   return EOL;

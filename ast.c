@@ -74,11 +74,26 @@ eval(AST* tree) {
     case 'I': tree->e.val.i = -tree->e.val.i; break;
     case 'F': tree->e.val.f = -tree->e.val.f; break;
     default:
-      yyerror("typing error, e: %c", tree->e.type);
+      yyerror("typing error (I,F,M), e: %c", tree->e.type);
       exit(EXIT_FAILURE);
     }
     break;
 
+  case '&':
+  case '|': {
+    evaltype le = eval(tree->left);
+    evaltype re = eval(tree->right);
+    if(le.type != 'I' || re.type != 'I') {
+      yyerror("typing error (&,|): le: %c, re: %c", le.type, re.type);
+      exit(EXIT_FAILURE);
+    }
+    tree->e.type = 'I';
+    if(tree->nodetype == '&')
+      tree->e.val.i = le.val.i & re.val.i;
+    else
+      tree->e.val.i = le.val.i | re.val.i;
+    break;
+  }
 
     /* BINARY FUNCTION cases that involve type specific operations */
   case '+':
@@ -90,7 +105,7 @@ eval(AST* tree) {
     evaltype re = eval(tree->right);
 
     if(le.type != re.type) {
-      yyerror("typing error, le: %c, re: %c", le.type, re.type);
+      yyerror("typing error (+,-,*,/), le: %c, re: %c", le.type, re.type);
       exit(EXIT_FAILURE);
     }
 
@@ -124,6 +139,7 @@ eval(AST* tree) {
       else if(le.type == 'F')
         tree->e.val.f = le.val.f / re.val.f;
       break;
+
     default:
       yyerror("internal error, node type: %c", tree->nodetype);
       exit(EXIT_FAILURE);
@@ -144,6 +160,8 @@ freeTREE(AST* tree) {
   case '-':
   case '*':
   case '/':
+  case '&':
+  case '|':
     freeTREE(tree->right);
 
     /* fall-through to types with ONE subtree */
@@ -156,6 +174,7 @@ freeTREE(AST* tree) {
     break;
 
   default:
+    /* you probably added a node type and forgot to add it here */
     yyerror("internal error in freeing tree, bad node type: %c",
             tree->nodetype);
     exit(EXIT_FAILURE);

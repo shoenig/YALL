@@ -16,7 +16,7 @@ void yyerror(char* s, ...);
 
 /* TODO: fix the following nonsense */
 /* node types
-* + - * / |
+* + - * / | &
 * 0-7 comparison ops, bit coded 04 equal, 02 less, 01 greater
 * M unary minus
 * L expression or statement list

@@ -47,14 +47,16 @@
  /* sexp is a symbolic expression */
  /* an exp is an (going to be an) INFIX expression */
 sexp: /*exp CMP exp     { $$ = newcmp($2, $1, $3); } */
-    '+' sexp sexp     { $$ = new_ast('+', $2, $3); }
-|    '-' sexp sexp     { $$ = new_ast('-', $2, $3); }
-|    '*' sexp sexp     { $$ = new_ast('*', $2, $3); }
-|    '/' sexp sexp     { $$ = new_ast('/', $2, $3); }
-|    PI              { $$ = new_floatval(3.14159); }
-|    FLOAT           { $$ = new_floatval($1); }
-|    INT             { $$ = new_intval($1); }
-|    '(' sexp ')'    { $$ = $2; }
+     '+' sexp sexp     { $$ = new_ast('+', $2, $3); }
+|    '-' sexp sexp    { $$ = new_ast('-', $2, $3); }
+|    '*' sexp sexp    { $$ = new_ast('*', $2, $3); }
+|    '/' sexp sexp    { $$ = new_ast('/', $2, $3); }
+|    '&' sexp sexp    { $$ = new_ast('&', $2, $3); }
+|    '|' sexp sexp    { $$ = new_ast('|', $2, $3); }
+|    PI               { $$ = new_floatval(3.14159); }
+|    FLOAT            { $$ = new_floatval($1); }
+|    INT              { $$ = new_intval($1); }
+|    '(' sexp ')'     { $$ = $2; }
 |    '(' '-' sexp ')' { $$ = new_ast('M', $3, NULL); }
 /*|    NAME            { $$ = newref($1); }*/
 ;

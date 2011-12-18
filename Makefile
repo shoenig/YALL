@@ -14,7 +14,7 @@ ast.o: ast.h ast.c
 err.o: err.h err.c
 	${CC} ${CCFLAGS} -c -o err.o err.c
 
-utilz.o: utilz.c
+utilz.o: utilz.h utilz.c
 	${CC} ${CCFLAGS} -c -o utilz.o utilz.c
 
 lex.yy.c: lexer.lex

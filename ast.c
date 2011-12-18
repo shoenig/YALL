@@ -14,23 +14,26 @@ new_ast(char ntype, AST* l, AST* r) {
   ast->nodetype = ntype;
   ast->left = l;
   ast->right = r;
+  ast->e.type = ntype;
   return ast;
 }
 
 AST*
 new_floatval(float64 f) {
-  floatval* fv = (floatval*)alloc_ast(sizeof(floatval));
-  fv->nodetype = 'F';
-  fv->fnumber = f;
-  return ((AST*)fv);
+  AST* fast = alloc_ast(sizeof(AST));
+  fast->nodetype = 'F';
+  fast->e.type = 'F';
+  fast->e.val.f = f;
+  return fast;
 }
 
 AST*
 new_intval(int64 i) {
-  intval* iv = (intval*)alloc_ast(sizeof(intval));
-  iv->nodetype = 'I';
-  iv->inumber = i;
-  return ((AST*)iv);
+  AST* iast = alloc_ast(sizeof(AST));
+  iast->nodetype = 'I';
+  iast->e.type = 'I';
+  iast->e.val.i = i;
+  return iast;
 }
 
 /* allocate an AST, but only big enough for the type
@@ -40,70 +43,94 @@ AST*
 alloc_ast(uint64 size) {
   AST* ast = malloc(size);
   if(!ast) {
-    yyerror("Heap Out of Memory building AST");
+    yyerror("Out of Memory building AST");
     exit(EXIT_FAILURE);
   }
   return ast;
 }
 
-
-/* evalute an AST that results in a float */
-float64
-eval_f(AST* tree) {
-  float64 f;
+/* Does type inferenceing.. or something */
+/* TODO: pull type checking out of here and do it statically
+   rather than at run time, that way we can assume everything
+   is okay here and get rid of all this nasty branching */
+evaltype
+eval(AST* tree) {
 
   if(!tree) {
-    yyerror("internal error, null tree in execute_f");
+    yyerror("internal error, null tree in eval");
     exit(EXIT_FAILURE);
   }
 
   switch(tree->nodetype) {
-    /* float */
-  case 'F': f = ((floatval*)tree)->fnumber; break;
-    /* int */
-  case 'I': f = ((float) ((intval*)tree)->inumber); break;
-    /* unary minus */
-  case 'M': f = -eval_f(tree->left); break;
-    /* expressions (int is upgrtreeded to float) */
-  case '+': f = eval_f(tree->left) + eval_f(tree->right); break;
-  case '-': f = eval_f(tree->left) - eval_f(tree->right); break;
-  case '*': f = eval_f(tree->left) * eval_f(tree->right); break;
-  case '/': f = eval_f(tree->left) / eval_f(tree->right); break;
+  case 'I':
+    tree->e.type = 'I';
+    break;
+  case 'F':
+    tree->e.type = 'F';
+    break;
+  case 'M':
+    tree->e = eval(tree->left);
+    switch(tree->e.type) {
+    case 'I': tree->e.val.i = -tree->e.val.i; break;
+    case 'F': tree->e.val.f = -tree->e.val.f; break;
+    default:
+      yyerror("typing error, e: %c", tree->e.type);
+      exit(EXIT_FAILURE);
+    }
+    break;
 
-  default:
-    yyerror("internal error, bad node type: %c", tree->nodetype);
-    exit(EXIT_FAILURE);
-  }   
 
-  return f;
-}
+    /* BINARY FUNCTION cases that involve type specific operations */
+  case '+':
+  case '-':
+  case '*':
+  case '/': { /* compiler needs this {} b/c of nested switch */
 
-int64
-eval_i(AST* tree) {
-  int64 i;
+    evaltype le = eval(tree->left);
+    evaltype re = eval(tree->right);
 
-  if(!tree) {
-    yyerror("internal error, null tree in eval_i");
-    exit(EXIT_FAILURE);
+    if(le.type != re.type) {
+      yyerror("typing error, le: %c, re: %c", le.type, re.type);
+      exit(EXIT_FAILURE);
+    }
+
+    if(le.type == 'I')
+      tree->e.type = 'I';
+    else if(le.type == 'F')
+      tree->e.type = 'F';
+
+    switch(tree->nodetype) {
+    case '+':
+      if(le.type == 'I')
+        tree->e.val.i = le.val.i + re.val.i;
+      else if(le.type == 'F')
+        tree->e.val.f = le.val.f + re.val.f;
+      break;
+    case '-':
+      if(le.type == 'I')
+        tree->e.val.i = le.val.i - re.val.i;
+      else if(le.type == 'F')
+        tree->e.val.f = le.val.f - re.val.f;
+      break;
+    case '*':
+      if(le.type == 'I')
+        tree->e.val.i = le.val.i * re.val.i;
+      else if(le.type == 'F')
+        tree->e.val.f = le.val.f * re.val.f;
+      break;
+    case '/':
+      if(le.type == 'I')
+        tree->e.val.i = le.val.i / re.val.i;
+      else if(le.type == 'F')
+        tree->e.val.f = le.val.f / re.val.f;
+      break;
+    default:
+      yyerror("internal error, node type: %c", tree->nodetype);
+      exit(EXIT_FAILURE);
+    }
   }
-
-  switch(tree->nodetype) {
-    /* float (cast to int) */
-  case 'F': i = ((int) ((floatval*)tree)->fnumber); break;
-    /* int */
-  case 'I': i = ((intval*)tree)->inumber; break;
-    /* unary minus */
-  case 'M': i = -eval_i(tree->left); break;
-  /* expressions (float is downgraded to int...) */
-  case '+': i = eval_i(tree->left) + eval_i(tree->right); break;
-  case '-': i = eval_i(tree->left) - eval_i(tree->right); break;
-  case '*': i = eval_i(tree->left) * eval_i(tree->right); break;
-  case '/': i = eval_i(tree->left) / eval_i(tree->right); break;
-
-  default:
-    yyerror("internal error, bad node type: %c", tree->nodetype);
-    exit(EXIT_FAILURE);
   }
+  return tree->e;
 }
 
 void

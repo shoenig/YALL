@@ -63,9 +63,19 @@ sexp: /*exp CMP exp     { $$ = newcmp($2, $1, $3); } */
  /* yalllist, top level */ 
 yalllist: /* nothing */
 | yalllist sexp EOL {
-  printf("debug eval_f: %4.4g\n", eval_f($2));
-  printf("debug eval_i: %4lld\n> ", eval_i($2));
-  /* eval($2); */
+
+  evaltype e = eval($2);
+  switch(e.type) {
+  case 'I':
+    printf("debug eval<I>: %4lld\n> ", e.val.i);
+    break;
+  case 'F':
+    printf("debug eval<F>: %4.4g\n> ", e.val.f);
+    break;
+  default:
+    printf("Unkown evaled type: %c\n> ", e.type);
+  }
+  /* eval($2); */ /* someday, my friend. */
   freeTREE($2);
  }
 | yalllist error EOL {

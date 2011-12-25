@@ -75,9 +75,20 @@ FEXP  ([Ee][-+]?[0-9]+)
   printf("c> ");
 }
 
-  /* PI */
+
+  /* keywords */
 "pi" {
   return PI;
+}
+
+"true" {
+  yylval.b = true;
+  return BOOLEAN;
+}
+
+"false" {
+  yylval.b = false;
+  return BOOLEAN;
 }
 
   /* built-in functions */
@@ -121,8 +132,13 @@ FEXP  ([Ee][-+]?[0-9]+)
   return BFUNC;
 }
 
-"!" {
+"fact" {
   yylval.bfunc = B_fact;
+  return BFUNC;
+}
+
+"!" {
+  yylval.bfunc = B_negate;
   return BFUNC;
 }
 

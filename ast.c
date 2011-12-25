@@ -38,6 +38,14 @@ new_intval(int64 i) {
 }
 
 AST*
+new_boolval(bool b) {
+  AST* ast = alloc_ast(sizeof(AST));
+  ast->nodetype = 'Z';
+  ast->e.val.bool = b;
+  return ast;
+}
+
+AST*
 new_bif(char bif, AST* l, AST* r) {
   AST* ast = alloc_ast(sizeof(AST));
   ast->nodetype = 'B';
@@ -57,6 +65,7 @@ new_cmp(char cmp, AST* l, AST* r) {
   return ast;
 }
 
+
 /* allocate an AST, but only big enough for the type
    of node that is actually going to be created
 */
@@ -74,7 +83,8 @@ alloc_ast(uint64 size) {
    is okay here and get rid of all this nasty branching */
 evaltype
 eval(AST* tree) {
-  if(!tree)
+
+  if(tree == NULL)
     crash("internal error, null tree in eval");
 
   switch(tree->nodetype) {
@@ -83,6 +93,9 @@ eval(AST* tree) {
     break;
   case 'F':
     tree->e.type = 'F';
+    break;
+  case 'Z':
+    tree->e.type = 'Z';
     break;
   case 'M':
     tree->e = eval(tree->left);
@@ -183,17 +196,18 @@ freeTREE(AST* tree) {
   case '/':
   case '&':
   case '|':
-  case 'T':
-  case 'B':
+  case 'T': /* truth function */
+  case 'B': /* various builtin functions */
     freeTREE(tree->right);
 
     /* fall-through to types with ONE subtree */
-  case 'M':
+  case 'M': /* numeric negation */
     freeTREE(tree->left);
     break;
     /* fall-through to types with NO subtree */
-  case 'F':
-  case 'I':
+  case 'F': /* float */
+  case 'I': /* int */
+  case 'Z': /* boolean */
     break;
 
   default:

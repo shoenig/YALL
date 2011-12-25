@@ -12,9 +12,10 @@
 %}
 
 %union {
-  AST* a;
-  float64 f;
-  int64 i;
+  AST* a;     /* abstract syntax tree */
+  float64 f;  /* 64 bit floating point */
+  int64 i;    /* 64 bit integral */
+  bool b;     /* boolean value */
   char bfunc; /* built in func */
   char tfunc; /* boolean func */
   /*Symbol* s;/* which symbol */
@@ -25,6 +26,7 @@
  /* tokens */
 %token <f> FLOAT
 %token <i> INT
+%token <b> BOOLEAN
  /*%token <s> NAME*/
 %token <tfunc> CMP
 %token <bfunc> BFUNC
@@ -63,6 +65,7 @@ sexp: CMP sexp sexp      { $$ = new_cmp($1, $2, $3); }
 |      PI              { $$ = new_floatval(3.14159); }
 |      FLOAT           { $$ = new_floatval($1); }
 |      INT             { $$ = new_intval($1); }
+|      BOOLEAN         { $$ = new_boolval($1); }
 |      '(' '-' sexp ')'  { $$ = new_ast('M', $3, NULL); }
 |     '(' sexp ')'    { $$ = $2; }
 |      BFUNC sexp     { $$ = new_bif($1, $2, NULL); }
@@ -82,8 +85,8 @@ yalllist: /* nothing */
   case 'F':
     printf("debug eval<F>: %4.4g\n> ", e.val.f);
     break;
-  case 'T':
-    printf("debug eval<B>: %d\n> ", e.val.bool);
+  case 'Z':
+    printf("debug eval<Z>: %d\n> ", e.val.bool);
     break;
   default:
     printf("Unknown evaled type: %c\n> ", e.type);

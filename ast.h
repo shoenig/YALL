@@ -68,6 +68,7 @@ typedef struct ast_ {
 AST* new_ast(char ntype, AST* l, AST* r);
 AST* new_floatval(float64 f);
 AST* new_intval(int64 i);
+AST* new_boolval(bool b);
 AST* new_bif(char bif, AST* l, AST* r);
 AST* new_cmp(char cmp, AST* l, AST* r);
 

@@ -18,6 +18,7 @@ typedef enum {
   B_int,
   B_pow,
   B_fact,
+  B_negate,
   B_floor,
   B_ceil
 } bif;

@@ -30,6 +30,15 @@ call_builtin(AST* bifcall) {
     break;
   }
 
+    /* logical negation */
+  case B_negate: {
+    if(e.type == 'Z')
+      e.val.bool = !e.val.bool;
+    else
+      crash("cannot invert non-boolean: %c", e.type);
+    break;
+  }
+
     /* sqrt (returns F or I) */
   case B_abs: {
     if(e.type == 'F')
@@ -173,7 +182,7 @@ call_boolfunc(AST* bftree) {
   evaltype l = eval(bftree->left);
   evaltype r = eval(bftree->right);
   evaltype res;
-  res.type = 'T';
+  res.type = 'Z';
   switch(bftree->e.val.t) {
   case T_not_equal:
     if(l.type != r.type)
@@ -183,7 +192,7 @@ call_boolfunc(AST* bftree) {
         res.val.bool = (l.val.i != r.val.i);
       else if(l.type=='F')
         res.val.bool = (l.val.f != r.val.f);
-      else if(l.type=='T')
+      else if(l.type=='Z')
         res.val.bool = (l.val.bool != r.val.bool);
       else
         crash("invalid type in != : %c", l.type);
@@ -197,7 +206,7 @@ call_boolfunc(AST* bftree) {
         res.val.bool = (l.val.i == r.val.i);
       else if(l.type=='F')
         res.val.bool = (l.val.f == r.val.f);
-      else if(l.type=='T')
+      else if(l.type=='Z')
         res.val.bool = (l.val.bool == r.val.bool);
       else
         crash("invalid type in == : %c", l.type);
@@ -235,7 +244,7 @@ call_boolfunc(AST* bftree) {
       crash("type conflict in <= : %c, %c", l.type, r.type);
     break;
   default:
-    crash("invalid boolen function: %d", bftree->e.val.t);
+    crash("invalid boolean function: %d", bftree->e.val.t);
   }
 
   return res;

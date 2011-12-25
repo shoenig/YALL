@@ -34,6 +34,7 @@ void yyerror(char* s, ...);
   'I': int64
   'F': float64
   'B': built-in function
+  'T': truth value (boolean)
   other: who cares for now?
 */
 typedef struct {
@@ -42,6 +43,8 @@ typedef struct {
     int64 i;
     float64 f;
     bif b;
+    cmpf t;
+    bool bool;
   } val;
 } evaltype;
 
@@ -66,6 +69,7 @@ AST* new_ast(char ntype, AST* l, AST* r);
 AST* new_floatval(float64 f);
 AST* new_intval(int64 i);
 AST* new_bif(char bif, AST* l, AST* r);
+AST* new_cmp(char cmp, AST* l, AST* r);
 
 /* allocate an AST given a size */
 AST* alloc_ast(uint64 size);

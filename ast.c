@@ -47,6 +47,16 @@ new_bif(char bif, AST* l, AST* r) {
   return ast;
 }
 
+AST*
+new_cmp(char cmp, AST* l, AST* r) {
+  AST* ast = alloc_ast(sizeof(AST));
+  ast->nodetype = 'T';
+  ast->e.val.t = cmp;
+  ast->left = l;
+  ast->right = r;
+  return ast;
+}
+
 /* allocate an AST, but only big enough for the type
    of node that is actually going to be created
 */
@@ -86,6 +96,10 @@ eval(AST* tree) {
 
   case 'B':
     tree->e = call_builtin(tree);
+    break;
+
+  case 'T':
+    tree->e = call_boolfunc(tree);
     break;
 
   case '&':
@@ -155,6 +169,9 @@ eval(AST* tree) {
 
 void
 freeTREE(AST* tree) {
+  if(tree == NULL)
+    return;
+
   switch(tree->nodetype) {
     /* types that have THREE subtrees */
     /* (currently there are none */
@@ -166,11 +183,12 @@ freeTREE(AST* tree) {
   case '/':
   case '&':
   case '|':
+  case 'T':
+  case 'B':
     freeTREE(tree->right);
 
     /* fall-through to types with ONE subtree */
   case 'M':
-  case 'B':
     freeTREE(tree->left);
     break;
     /* fall-through to types with NO subtree */

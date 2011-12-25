@@ -31,19 +31,14 @@ FEXP  ([Ee][-+]?[0-9]+)
 ")"  { return yytext[0]; }
 
   /* comparison ops, (all use CMP token) */
-  /*
-">"  { yylval.fn = 1; return CMP; }
-"<"  { yylval.fn = 2; return CMP; }
-"!=" { yylval.fn = 3; return CMP; }
-"==" { yylval.fn = 4; return CMP; }
-">=" { yylval.fn = 5; return CMP; }
-"<=" { yylval.fn = 6; return CMP; }
-  */
-  /* keywords */
 
-  /* built-in values */
+">"  { yylval.tfunc = T_greater_than; return CMP; }
+"<"  { yylval.tfunc = T_less_than; return CMP; }
+"!=" { yylval.tfunc = T_not_equal; return CMP; }
+"==" { yylval.tfunc = T_equal; return CMP; }
+">=" { yylval.tfunc = T_greater_than_equal; return CMP; }
+"<=" { yylval.tfunc = T_less_than_equal; return CMP; }
 
-  /* built-in functions */
 
   /* names */
   /*

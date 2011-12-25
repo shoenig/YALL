@@ -167,3 +167,76 @@ call_builtin(AST* bifcall) {
   }
   return e;
 }
+
+evaltype
+call_boolfunc(AST* bftree) {
+  evaltype l = eval(bftree->left);
+  evaltype r = eval(bftree->right);
+  evaltype res;
+  res.type = 'T';
+  switch(bftree->e.val.t) {
+  case T_not_equal:
+    if(l.type != r.type)
+      res.val.bool = true;
+    else {
+      if(l.type=='I')
+        res.val.bool = (l.val.i != r.val.i);
+      else if(l.type=='F')
+        res.val.bool = (l.val.f != r.val.f);
+      else if(l.type=='T')
+        res.val.bool = (l.val.bool != r.val.bool);
+      else
+        crash("invalid type in != : %c", l.type);
+    }
+    break;
+  case T_equal:
+    if(l.type != r.type)
+      res.val.bool = false;
+    else
+      if(l.type=='I')
+        res.val.bool = (l.val.i == r.val.i);
+      else if(l.type=='F')
+        res.val.bool = (l.val.f == r.val.f);
+      else if(l.type=='T')
+        res.val.bool = (l.val.bool == r.val.bool);
+      else
+        crash("invalid type in == : %c", l.type);
+    break;
+  case T_greater_than:
+    if(l.type=='I' && r.type=='I')
+      res.val.bool = (l.val.i > r.val.i);
+    else if(l.type=='F' && r.type=='F')
+      res.val.bool = (l.val.f > r.val.f);
+    else
+      crash("type conflict in > : %c, %c", l.type, r.type);
+    break;
+  case T_less_than:
+    if(l.type=='I' && r.type=='I')
+      res.val.bool = (l.val.i < r.val.i);
+    else if(l.type=='F' && r.type=='F')
+      res.val.bool = (l.val.f < r.val.f);
+    else
+      crash("type conflict in < : %c, %c", l.type, r.type);
+    break;
+  case T_greater_than_equal:
+    if(l.type=='I' && r.type=='I')
+      res.val.bool = (l.val.i >= r.val.i);
+    else if(l.type=='F' && r.type=='F')
+      res.val.bool = (l.val.f >= r.val.f);
+    else
+      crash("type conflict in >= : %c, %c", l.type, r.type);
+    break;
+  case T_less_than_equal:
+    if(l.type=='I' && r.type=='I')
+      res.val.bool = (l.val.i <= r.val.i);
+    else if(l.type=='F' && r.type=='F')
+      res.val.bool = (l.val.f <= r.val.f);
+    else
+      crash("type conflict in <= : %c, %c", l.type, r.type);
+    break;
+  default:
+    crash("invalid boolen function: %d", bftree->e.val.t);
+  }
+
+  return res;
+}

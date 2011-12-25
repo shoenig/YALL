@@ -16,6 +16,7 @@
   float64 f;
   int64 i;
   char bfunc; /* built in func */
+  char tfunc; /* boolean func */
   /*Symbol* s;/* which symbol */
   /*Symlist* sl; /* list o' symbols */
   /*uint64_t func; /* which function */
@@ -25,6 +26,7 @@
 %token <f> FLOAT
 %token <i> INT
  /*%token <s> NAME*/
+%token <tfunc> CMP
 %token <bfunc> BFUNC
 %token EOL
 %token PI
@@ -32,7 +34,7 @@
  /* associativities */
 
 %nonassoc UMINUS
- /*%nonassoc <fn> CMP*/
+ /*%nonassoc <fn> CMP
  /*%right '='*/
 %left '+' '-'
 %left '*' '/'
@@ -43,8 +45,6 @@
  /* explist at some point is <a> */
  /*%type <sl> symlist */
 
-%nonassoc BINF
-
 %start yalllist
 
 %%
@@ -53,20 +53,20 @@
 
  /* sexp is a symbolic expression */
  /* an exp is an (going to be an) INFIX expression */
-sexp: /*exp CMP exp     { $$ = newcmp($2, $1, $3); } */
-    '+' sexp sexp    { $$ = new_ast('+', $2, $3); }
-|   '-' sexp sexp    { $$ = new_ast('-', $2, $3); }
-|   '*' sexp sexp    { $$ = new_ast('*', $2, $3); }
-|   '/' sexp sexp    { $$ = new_ast('/', $2, $3); }
-|   '&' sexp sexp    { $$ = new_ast('&', $2, $3); }
-|   '|' sexp sexp    { $$ = new_ast('|', $2, $3); }
-|    PI              { $$ = new_floatval(3.14159); }
-|    FLOAT           { $$ = new_floatval($1); }
-|    INT             { $$ = new_intval($1); }
-|    '(' '-' sexp ')'  { $$ = new_ast('M', $3, NULL); }
-|   '(' sexp ')'    { $$ = $2; }
-|    BFUNC sexp     { $$ = new_bif($1, $2, NULL); }
-|    '(' BFUNC sexp sexp ')' { $$ = new_bif($2, $3, $4); }
+sexp: CMP sexp sexp      { $$ = new_cmp($1, $2, $3); }
+|     '+' sexp sexp    { $$ = new_ast('+', $2, $3); }
+|     '-' sexp sexp    { $$ = new_ast('-', $2, $3); }
+|     '*' sexp sexp    { $$ = new_ast('*', $2, $3); }
+|     '/' sexp sexp    { $$ = new_ast('/', $2, $3); }
+|     '&' sexp sexp    { $$ = new_ast('&', $2, $3); }
+|     '|' sexp sexp    { $$ = new_ast('|', $2, $3); }
+|      PI              { $$ = new_floatval(3.14159); }
+|      FLOAT           { $$ = new_floatval($1); }
+|      INT             { $$ = new_intval($1); }
+|      '(' '-' sexp ')'  { $$ = new_ast('M', $3, NULL); }
+|     '(' sexp ')'    { $$ = $2; }
+|      BFUNC sexp     { $$ = new_bif($1, $2, NULL); }
+|      '(' BFUNC sexp sexp ')' { $$ = new_bif($2, $3, $4); }
 /*|    NAME            { $$ = newref($1); }*/
 ;
 
@@ -81,6 +81,9 @@ yalllist: /* nothing */
     break;
   case 'F':
     printf("debug eval<F>: %4.4g\n> ", e.val.f);
+    break;
+  case 'T':
+    printf("debug eval<B>: %d\n> ", e.val.bool);
     break;
   default:
     printf("Unknown evaled type: %c\n> ", e.type);

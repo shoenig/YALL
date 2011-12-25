@@ -22,5 +22,15 @@ typedef enum {
   B_ceil
 } bif;
 
+/* {in}equalities  */
+typedef enum {
+  T_greater_than = 10,
+  T_less_than,
+  T_not_equal,
+  T_equal,
+  T_greater_than_equal,
+  T_less_than_equal
+} cmpf;
+
 
 #endif

@@ -11,6 +11,7 @@
 #include "stdtype.h"
 #include "ast.h"
 #include "err.h"
+#include "builtins.h"
 #include "parser.tab.h"
 %}
 
@@ -80,8 +81,64 @@ FEXP  ([Ee][-+]?[0-9]+)
 }
 
   /* PI */
-"PI" {
+"pi" {
   return PI;
+}
+
+  /* built-in functions */
+"sqrt" {
+  yylval.bfunc = B_sqrt;
+  return BFUNC;
+}
+
+"abs" {
+  yylval.bfunc = B_abs;
+  return BFUNC;
+}
+
+"log" {
+  yylval.bfunc = B_log;
+  return BFUNC;
+}
+
+"log2" {
+  yylval.bfunc = B_log2;
+  return BFUNC;
+}
+
+"log10" {
+  yylval.bfunc = B_log10;
+  return BFUNC;
+}
+
+"float" {
+  yylval.bfunc = B_float;
+  return BFUNC;
+}
+
+"int" {
+  yylval.bfunc = B_int;
+  return BFUNC;
+}
+
+"pow" {
+  yylval.bfunc = B_pow;
+  return BFUNC;
+}
+
+"!" {
+  yylval.bfunc = B_fact;
+  return BFUNC;
+}
+
+"floor" {
+  yylval.bfunc = B_floor;
+  return BFUNC;
+}
+
+"ceil" {
+  yylval.bfunc = B_ceil;
+  return BFUNC;
 }
 
   /* end of line */

@@ -8,7 +8,7 @@
 #define YALL_AST_H
 
 #include "stdtype.h"
-/* #include "builtin_funcs.h" */
+#include "builtintypes.h"
 
 /* interface to lexer */
 extern int yylineno;
@@ -33,6 +33,7 @@ void yyerror(char* s, ...);
 /* etypes:
   'I': int64
   'F': float64
+  'B': built-in function
   other: who cares for now?
 */
 typedef struct {
@@ -40,6 +41,7 @@ typedef struct {
   union {
     int64 i;
     float64 f;
+    bif b;
   } val;
 } evaltype;
 
@@ -63,6 +65,7 @@ typedef struct ast_ {
 AST* new_ast(char ntype, AST* l, AST* r);
 AST* new_floatval(float64 f);
 AST* new_intval(int64 i);
+AST* new_bif(char bif, AST* l, AST* r);
 
 /* allocate an AST given a size */
 AST* alloc_ast(uint64 size);

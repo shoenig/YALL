@@ -15,6 +15,7 @@
   AST* a;
   float64 f;
   int64 i;
+  char bfunc; /* built in func */
   /*Symbol* s;/* which symbol */
   /*Symlist* sl; /* list o' symbols */
   /*uint64_t func; /* which function */
@@ -24,43 +25,50 @@
 %token <f> FLOAT
 %token <i> INT
  /*%token <s> NAME*/
- /*%token <fn> FUNC*/
+%token <bfunc> BFUNC
 %token EOL
 %token PI
 
  /* associativities */
+
+%nonassoc UMINUS
  /*%nonassoc <fn> CMP*/
  /*%right '='*/
 %left '+' '-'
 %left '*' '/'
-%nonassoc UMINUS
 
-
-%type <a> sexp /*explist*/
+%type <a> sexp
+/* %type <a> list */
+/* %type <a> rlist */
+ /* explist at some point is <a> */
  /*%type <sl> symlist */
+
+%nonassoc BINF
 
 %start yalllist
 
 %%
 
  /* grammer */
+
  /* sexp is a symbolic expression */
  /* an exp is an (going to be an) INFIX expression */
 sexp: /*exp CMP exp     { $$ = newcmp($2, $1, $3); } */
-     '+' sexp sexp     { $$ = new_ast('+', $2, $3); }
-|    '-' sexp sexp    { $$ = new_ast('-', $2, $3); }
-|    '*' sexp sexp    { $$ = new_ast('*', $2, $3); }
-|    '/' sexp sexp    { $$ = new_ast('/', $2, $3); }
-|    '&' sexp sexp    { $$ = new_ast('&', $2, $3); }
-|    '|' sexp sexp    { $$ = new_ast('|', $2, $3); }
-|    PI               { $$ = new_floatval(3.14159); }
-|    FLOAT            { $$ = new_floatval($1); }
-|    INT              { $$ = new_intval($1); }
-|    '(' sexp ')'     { $$ = $2; }
-|    '(' '-' sexp ')' { $$ = new_ast('M', $3, NULL); }
+    '+' sexp sexp    { $$ = new_ast('+', $2, $3); }
+|   '-' sexp sexp    { $$ = new_ast('-', $2, $3); }
+|   '*' sexp sexp    { $$ = new_ast('*', $2, $3); }
+|   '/' sexp sexp    { $$ = new_ast('/', $2, $3); }
+|   '&' sexp sexp    { $$ = new_ast('&', $2, $3); }
+|   '|' sexp sexp    { $$ = new_ast('|', $2, $3); }
+|    PI              { $$ = new_floatval(3.14159); }
+|    FLOAT           { $$ = new_floatval($1); }
+|    INT             { $$ = new_intval($1); }
+|    '(' '-' sexp ')'  { $$ = new_ast('M', $3, NULL); }
+|   '(' sexp ')'    { $$ = $2; }
+|    BFUNC sexp     { $$ = new_bif($1, $2, NULL); }
+|    '(' BFUNC sexp sexp ')' { $$ = new_bif($2, $3, $4); }
 /*|    NAME            { $$ = newref($1); }*/
 ;
-
 
  /* yalllist, top level */ 
 yalllist: /* nothing */
@@ -75,9 +83,8 @@ yalllist: /* nothing */
     printf("debug eval<F>: %4.4g\n> ", e.val.f);
     break;
   default:
-    printf("Unkown evaled type: %c\n> ", e.type);
+    printf("Unknown evaled type: %c\n> ", e.type);
   }
-  /* eval($2); */ /* someday, my friend. */
   freeTREE($2);
  }
 | yalllist error EOL {

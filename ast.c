@@ -7,6 +7,7 @@
 #include "stdtype.h"
 #include "ast.h"
 #include "err.h"
+#include "builtins.h"
 
 AST*
 new_ast(char ntype, AST* l, AST* r) {
@@ -36,6 +37,16 @@ new_intval(int64 i) {
   return iast;
 }
 
+AST*
+new_bif(char bif, AST* l, AST* r) {
+  AST* ast = alloc_ast(sizeof(AST));
+  ast->nodetype = 'B';
+  ast->e.val.b = bif;
+  ast->left = l;
+  ast->right = r;
+  return ast;
+}
+
 /* allocate an AST, but only big enough for the type
    of node that is actually going to be created
 */
@@ -55,7 +66,6 @@ alloc_ast(uint64 size) {
    is okay here and get rid of all this nasty branching */
 evaltype
 eval(AST* tree) {
-
   if(!tree) {
     yyerror("internal error, null tree in eval");
     exit(EXIT_FAILURE);
@@ -77,6 +87,10 @@ eval(AST* tree) {
       yyerror("typing error (I,F,M), e: %c", tree->e.type);
       exit(EXIT_FAILURE);
     }
+    break;
+
+  case 'B':
+    tree->e = call_builtin(tree);
     break;
 
   case '&':
@@ -141,7 +155,7 @@ eval(AST* tree) {
       break;
 
     default:
-      yyerror("internal error, node type: %c", tree->nodetype);
+      yyerror("invalid binary built-in function: %c", tree->nodetype);
       exit(EXIT_FAILURE);
     }
   }
@@ -166,6 +180,7 @@ freeTREE(AST* tree) {
 
     /* fall-through to types with ONE subtree */
   case 'M':
+  case 'B':
     freeTREE(tree->left);
     break;
     /* fall-through to types with NO subtree */

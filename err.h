@@ -7,5 +7,6 @@
 #define YALL_ERR_H
 
 void yyerror(char* s, ...);
+void crash(char* s, ...);
 
 #endif

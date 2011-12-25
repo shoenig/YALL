@@ -53,10 +53,8 @@ new_bif(char bif, AST* l, AST* r) {
 AST*
 alloc_ast(uint64 size) {
   AST* ast = malloc(size);
-  if(!ast) {
-    yyerror("Out of Memory building AST");
-    exit(EXIT_FAILURE);
-  }
+  if(!ast)
+    crash("Out of Memory building AST");
   return ast;
 }
 
@@ -66,10 +64,8 @@ alloc_ast(uint64 size) {
    is okay here and get rid of all this nasty branching */
 evaltype
 eval(AST* tree) {
-  if(!tree) {
-    yyerror("internal error, null tree in eval");
-    exit(EXIT_FAILURE);
-  }
+  if(!tree)
+    crash("internal error, null tree in eval");
 
   switch(tree->nodetype) {
   case 'I':
@@ -84,8 +80,7 @@ eval(AST* tree) {
     case 'I': tree->e.val.i = -tree->e.val.i; break;
     case 'F': tree->e.val.f = -tree->e.val.f; break;
     default:
-      yyerror("typing error (I,F,M), e: %c", tree->e.type);
-      exit(EXIT_FAILURE);
+      crash("typing error (I,F,M), e: %c", tree->e.type);
     }
     break;
 
@@ -97,10 +92,8 @@ eval(AST* tree) {
   case '|': {
     evaltype le = eval(tree->left);
     evaltype re = eval(tree->right);
-    if(le.type != 'I' || re.type != 'I') {
-      yyerror("typing error (&,|): le: %c, re: %c", le.type, re.type);
-      exit(EXIT_FAILURE);
-    }
+    if(le.type != 'I' || re.type != 'I')
+      crash("typing error (&,|): le: %c, re: %c", le.type, re.type);
     tree->e.type = 'I';
     if(tree->nodetype == '&')
       tree->e.val.i = le.val.i & re.val.i;
@@ -118,10 +111,8 @@ eval(AST* tree) {
     evaltype le = eval(tree->left);
     evaltype re = eval(tree->right);
 
-    if(le.type != re.type) {
-      yyerror("typing error (+,-,*,/), le: %c, re: %c", le.type, re.type);
-      exit(EXIT_FAILURE);
-    }
+    if(le.type != re.type)
+      crash("typing error (+,-,*,/), le: %c, re: %c", le.type, re.type);
 
     if(le.type == 'I')
       tree->e.type = 'I';
@@ -155,8 +146,7 @@ eval(AST* tree) {
       break;
 
     default:
-      yyerror("invalid binary built-in function: %c", tree->nodetype);
-      exit(EXIT_FAILURE);
+      crash("invalid binary built-in function: %c", tree->nodetype);
     }
   }
   }
@@ -190,9 +180,8 @@ freeTREE(AST* tree) {
 
   default:
     /* you probably added a node type and forgot to add it here */
-    yyerror("internal error in freeing tree, bad node type: %c",
+    crash("internal error in freeing tree, bad node type: %c",
             tree->nodetype);
-    exit(EXIT_FAILURE);
   }
   /* actually delete this node, (all children have been deleted) */
   free(tree);

@@ -25,10 +25,8 @@ call_builtin(AST* bifcall) {
       float64 conv = (float64)e.val.i;
       e.val.f = sqrt(conv);
       e.type = 'F';
-    } else {
-      yyerror("wrong type in sqrt: %c", e.type);
-      exit(EXIT_FAILURE);
-    }
+    } else
+      crash("wrong type in sqrt: %c", e.type);
     break;
   }
 
@@ -38,10 +36,8 @@ call_builtin(AST* bifcall) {
       e.val.f = e.val.f < 0 ? -e.val.f : e.val.f;
     else if (e.type == 'I')
       e.val.i = e.val.i < 0 ? -e.val.i : e.val.i;
-    else {
-      yyerror("wrong type in abs: %c", e.type);
-      exit(EXIT_FAILURE);
-    }
+    else
+      crash("wrong type in abs: %c", e.type);
     break;
   }
 
@@ -53,10 +49,8 @@ call_builtin(AST* bifcall) {
       float64 conv = (float64)e.val.i;
       e.val.f = log(conv);
       e.type = 'F';
-    } else {
-      yyerror("wrong type in log: %c", e.type);
-      exit(EXIT_FAILURE);
-    }
+    } else
+      crash("wrong type in log: %c", e.type);
     break;
   }
 
@@ -68,10 +62,8 @@ call_builtin(AST* bifcall) {
       float64 conv = (float64)e.val.i;
       e.val.f = log10(conv);
       e.type = 'F';
-    } else {
-      yyerror("wrong type in log10: %c", e.type);
-      exit(EXIT_FAILURE);
-    }
+    } else
+      crash("wrong type in log10: %c", e.type);
     break;
   }
 
@@ -83,10 +75,8 @@ call_builtin(AST* bifcall) {
       float64 conv = (float64)e.val.i;
       e.val.f = (log10(conv)/log10(2));
       e.type = 'F';
-    } else {
-      yyerror("wrong type in log10: %c", e.type);
-      exit(EXIT_FAILURE);
-    }
+    } else
+      crash("wrong type in log10: %c", e.type);
     break;
   }
 
@@ -114,10 +104,9 @@ call_builtin(AST* bifcall) {
   }
     /* n! if n is an I */
   case B_fact: {
-    if(e.type != 'I') {
-      yyerror("wrong type in !: %c", e.type);
-      exit(EXIT_FAILURE);
-    } else {
+    if(e.type != 'I')
+      crash("wrong type in !: %c", e.type);
+    else {
       int64 i = e.val.i;
       int64 v = 1;
       while(i>0)
@@ -129,10 +118,9 @@ call_builtin(AST* bifcall) {
 
     /* returns F if n is F or I */
   case B_float: {
-    if(e.type != 'I' && e.type != 'F') {
-      yyerror("wrong type in conversion to float: %c", e.type);
-      exit(EXIT_FAILURE);
-    } else {
+    if(e.type != 'I' && e.type != 'F')
+      crash("wrong type in conversion to float: %c", e.type);
+    else {
       /* must be I or F, if it's F, no need to do anything */
       if(e.type == 'I') {
         e.val.f = (float64)e.val.i;
@@ -144,10 +132,9 @@ call_builtin(AST* bifcall) {
 
     /* returns I if n is F or I (TRUNCATES F) */
   case B_int: {
-    if(e.type != 'I' && e.type != 'F') {
-      yyerror("wrong type in conversion to int: %c", e.type);
-      exit(EXIT_FAILURE);
-    } else {
+    if(e.type != 'I' && e.type != 'F')
+      crash("wrong type in conversion to int: %c", e.type);
+    else {
       /* must be I or F, if I, no need to do anything */
       if(e.type == 'F') {
         e.val.i = (int64)e.val.f;
@@ -159,29 +146,24 @@ call_builtin(AST* bifcall) {
 
     /* returns floor(F) */
   case B_floor: {
-    if(e.type == 'F') {
+    if(e.type == 'F')
       e.val.f = floor(e.val.f);
-    } else {
-      yyerror("wrong type in floor: %c", e.type);
-      exit(EXIT_FAILURE);
-    }
+    else
+      crash("wrong type in floor: %c", e.type);
     break;
   }
 
     /* returns ceil(F) */
   case B_ceil: {
-    if(e.type == 'F') {
+    if(e.type == 'F')
       e.val.f = ceil(e.val.f);
-    } else {
-      yyerror("wrong type in ceil: %c", e.type);
-      exit(EXIT_FAILURE);
-    }
+    else
+      crash("wrong type in ceil: %c", e.type);
     break;
   }
 
   default:
-    yyerror("invalid built-in function: %d", bifcall->e.val.b);
-    exit(EXIT_FAILURE);
+    crash("invalid built-in function: %d", bifcall->e.val.b);
   }
   return e;
 }

@@ -6,6 +6,7 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
+#include "globals.h"
 #include "err.h"
 #include "stdtype.h"
 #include "ast.h"
@@ -80,17 +81,19 @@ yalllist: /* nothing */
   evaltype e = eval($2);
   switch(e.type) {
   case 'I':
-    printf("debug eval<I>: %4lld\n> ", e.val.i);
+    printf("%lld\n", e.val.i);
     break;
   case 'F':
-    printf("debug eval<F>: %4.4g\n> ", e.val.f);
+    printf("%f\n", e.val.f);
     break;
   case 'Z':
-    printf("debug eval<Z>: %d\n> ", e.val.bool);
+    printf("%d\n", e.val.bool);
     break;
   default:
     printf("Unknown evaled type: %c\n> ", e.type);
   }
+  if(reading_stdin)
+    printf("> ");
   freeTREE($2);
  }
 | yalllist error EOL {

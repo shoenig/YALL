@@ -4,18 +4,36 @@
 */
 
 #include <stdio.h>
-
-/*#include "parser.tab.h"*/
+#include <stdlib.h>
+#include "globals.h"
 #include "stdtype.h"
 #include "ast.h"
 
 extern int yyparse();
+extern FILE* yyin;
 
 int
 main(int argc, char** argv) {
-
+  int parse;
+  int i;
+  if(argc > 1) {
+    for(i=1; i<argc; i++) {
+      FILE* f = fopen(argv[i], "r");
+      if(!f) {
+        perror(argv[i]);
+        return EXIT_FAILURE;
+      }
+      reading_stdin = false;
+      yyrestart(f);
+      parse = yyparse(); // yee-haw!!
+      fclose(f);
+    }
+    return parse;
+  }
+  reading_stdin = true;
+  yyin = stdin;
   printf("> ");
-  int parse = yyparse(); // yee-haw!!
+  parse = yyparse();
   printf("\nBye.\n");
   return parse;
 }

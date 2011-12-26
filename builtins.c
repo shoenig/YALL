@@ -243,6 +243,19 @@ call_boolfunc(AST* bftree) {
     else
       crash("type conflict in <= : %c, %c", l.type, r.type);
     break;
+  case T_or:
+    if(l.type=='Z' && r.type=='Z')
+      res.val.bool = (l.val.bool || r.val.bool);
+    else
+      crash("non boolean in or  : %c, %c", l.type, r.type);
+    break;
+  case T_and:
+    if(l.type=='Z' && r.type=='Z')
+      res.val.bool = (l.val.bool && r.val.bool);
+    else
+      crash("non boolean in and : %c, %c", l.type, r.type);
+    break;
+
   default:
     crash("invalid boolean function: %d", bftree->e.val.t);
   }

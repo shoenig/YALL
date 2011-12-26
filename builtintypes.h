@@ -30,7 +30,9 @@ typedef enum {
   T_not_equal,
   T_equal,
   T_greater_than_equal,
-  T_less_than_equal
+  T_less_than_equal,
+  T_and,
+  T_or
 } cmpf;
 
 

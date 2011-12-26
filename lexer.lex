@@ -38,7 +38,8 @@ FEXP  ([Ee][-+]?[0-9]+)
 "==" { yylval.tfunc = T_equal; return CMP; }
 ">=" { yylval.tfunc = T_greater_than_equal; return CMP; }
 "<=" { yylval.tfunc = T_less_than_equal; return CMP; }
-
+"or" { yylval.bfunc = T_or; return CMP; }
+"and" { yylval.bfunc = T_and; return CMP; }
 
   /* names */
   /*

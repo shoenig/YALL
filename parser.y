@@ -84,7 +84,7 @@ yalllist: /* nothing */
     printf("%lld\n", e.val.i);
     break;
   case 'F':
-    printf("%f\n", e.val.f);
+    printf("%4.2f\n", e.val.f);
     break;
   case 'Z':
     printf("%d\n", e.val.bool);

@@ -7,6 +7,7 @@ CCFLAGS = -std=c99 -O0 -Wall -pedantic -g
 
 yall: lex.yy.c parser.tab.c main.c ast.o err.o utilz.o builtins.o globals.h
 	${CC} -O2 -o $@ parser.tab.c lex.yy.c ast.o err.o utilz.o builtins.o main.c -lfl -lm
+	mv yall ../
 
 ast.o: ast.h builtintypes.h ast.c
 	${CC} ${CCFLAGS} -c -o ast.o ast.c

@@ -10,6 +10,7 @@
 #include "err.h"
 #include "stdtype.h"
 #include "ast.h"
+#include "symbol.h"
 %}
 
 %union {
@@ -19,7 +20,8 @@
   bool b;     /* boolean value */
   char bfunc; /* built in func */
   char tfunc; /* boolean func */
-  /*Symbol* s;/* which symbol */
+  char* c; /* name, reference name */
+  /*  Symbol* s; /* which symbol */
   /*Symlist* sl; /* list o' symbols */
   /*uint64_t func; /* which function */
 }
@@ -28,7 +30,7 @@
 %token <f> FLOAT
 %token <i> INT
 %token <b> BOOLEAN
- /*%token <s> NAME*/
+%token <c> NAME
 %token <tfunc> CMP
 %token <bfunc> BFUNC
 %token EOL
@@ -71,7 +73,7 @@ sexp: CMP sexp sexp      { $$ = new_cmp($1, $2, $3); }
 |     '(' sexp ')'    { $$ = $2; }
 |      BFUNC sexp     { $$ = new_bif($1, $2, NULL); }
 |      '(' BFUNC sexp sexp ')' { $$ = new_bif($2, $3, $4); }
-/*|    NAME            { $$ = newref($1); }*/
+|    NAME            { $$ = new_ref($1); }
 ;
 
  /* yalllist, top level */ 

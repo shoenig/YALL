@@ -16,6 +16,7 @@ int
 main(int argc, char** argv) {
   int parse;
   int i;
+  smt_init(); /* initialize symbol table */
   if(argc > 1) {
     for(i=1; i<argc; i++) {
       FILE* f = fopen(argv[i], "r");

@@ -5,176 +5,212 @@
 
 #include <stdlib.h>
 #include <math.h>
+#include "ast.h"
 #include "builtins.h"
 #include "builtintypes.h"
-#include "ast.h"
 #include "err.h"
-
+#include "symtable.h"
 
 evaltype
 call_builtin(AST* bifcall) {
-  evaltype e = eval(bifcall->left);
+  evaltype eleft;
+  evaltype eright;
+  evaltype eret;
 
   switch(bifcall->e.val.b) {
 
     /* sqrt (returns F) */
   case B_sqrt: {
-    if(e.type == 'F')
-      e.val.f = sqrt(e.val.f);
-    else if(e.type == 'I') {
-      float64 conv = (float64)e.val.i;
-      e.val.f = sqrt(conv);
-      e.type = 'F';
+    eleft = eval(bifcall->left);
+    eret.type = 'F';
+    if(eleft.type == 'F')
+      eret.val.f = sqrt(eleft.val.f);
+    else if(eleft.type == 'I') {
+      float64 conv = (float64)eleft.val.i;
+      eret.val.f = sqrt(conv);
     } else
-      crash("wrong type in sqrt: %c", e.type);
+      crash("wrong type in sqrt: %c", eleft.type);
     break;
   }
 
     /* logical negation */
   case B_negate: {
-    if(e.type == 'Z')
-      e.val.bool = !e.val.bool;
+    eleft = eval(bifcall->left);
+    eret.type = 'Z';
+    if(eleft.type == 'Z')
+      eret.val.bool = !eleft.val.bool;
     else
-      crash("cannot invert non-boolean: %c", e.type);
+      crash("cannot invert non-boolean: %c", eleft.type);
     break;
   }
 
-    /* sqrt (returns F or I) */
+    /* abs (returns I or F) */
   case B_abs: {
-    if(e.type == 'F')
-      e.val.f = e.val.f < 0 ? -e.val.f : e.val.f;
-    else if (e.type == 'I')
-      e.val.i = e.val.i < 0 ? -e.val.i : e.val.i;
-    else
-      crash("wrong type in abs: %c", e.type);
+    eleft = eval(bifcall->left);
+    if(eleft.type == 'F') {
+      eret.type = 'F';
+      eret.val.f = eleft.val.f < 0 ? -eleft.val.f : eleft.val.f;
+    } else if (eleft.type == 'I') {
+      eret.type = 'I';
+      eret.val.i = eleft.val.i < 0 ? -eleft.val.i : eleft.val.i;
+    } else
+      crash("wrong type in abs: %c", eleft.type);
     break;
   }
 
     /* log (base e, returns F) */
   case B_log: {
-    if(e.type == 'F')
-      e.val.f = log(e.val.f);
-    else if(e.type == 'I') {
-      float64 conv = (float64)e.val.i;
-      e.val.f = log(conv);
-      e.type = 'F';
+    eleft = eval(bifcall->left);
+    eret.type = 'F';
+    if(eleft.type == 'F')
+      eret.val.f = log(eleft.val.f);
+    else if(eleft.type == 'I') {
+      float64 conv = (float64)eleft.val.i;
+      eret.val.f = log(conv);
     } else
-      crash("wrong type in log: %c", e.type);
+      crash("wrong type in log: %c", eleft.type);
     break;
   }
 
     /* log10 (base 10, returns F) */
   case B_log10: {
-    if(e.type == 'F')
-      e.val.f = log10(e.val.f);
-    else if(e.type == 'I') {
-      float64 conv = (float64)e.val.i;
-      e.val.f = log10(conv);
-      e.type = 'F';
+    eleft = eval(bifcall->left);
+    eret.type = 'F';
+    if(eleft.type == 'F')
+      eret.val.f = log10(eleft.val.f);
+    else if(eleft.type == 'I') {
+      float64 conv = (float64)eleft.val.i;
+      eret.val.f = log10(conv);
     } else
-      crash("wrong type in log10: %c", e.type);
+      crash("wrong type in log10: %c", eleft.type);
     break;
   }
 
     /* log2 (base 2, returns F) */
   case B_log2: {
-    if(e.type == 'F')
-      e.val.f = (log10(e.val.f)/log10(2));
-    else if(e.type == 'I') {
-      float64 conv = (float64)e.val.i;
-      e.val.f = (log10(conv)/log10(2));
-      e.type = 'F';
+    eleft = eval(bifcall->left);
+    eret.type = 'F';
+    if(eleft.type == 'F') {
+      eret.val.f = (log10(eleft.val.f)/log10(2.0));
+    } else if(eleft.type == 'I') {
+      float64 conv = (float64)eleft.val.i;
+      eret.val.f = (log10(conv)/log10(2.0));
     } else
-      crash("wrong type in log10: %c", e.type);
+      crash("wrong type in log10: %c", eleft.type);
     break;
   }
 
     /* pow (a**b), returns I iff a and b are I, F otherwise */
   case B_pow: {
-    evaltype r = eval(bifcall->right);
-    if(e.type == 'I' && r.type == 'I') { /* return an int */
-      float64 f = pow(e.val.i, r.val.i);
+    eleft = eval(bifcall->left);
+    eright = eval(bifcall->right);
+    if(eleft.type == 'I' && eright.type == 'I') { /* return an int */
+      float64 f = pow(eleft.val.i, eright.val.i);
       int64 i = (int64)f;
-      e.val.i = i;
+      eret.type = 'I';
+      eret.val.i = i;
     } else { /* return a float */
       float64 base, power;
-      if(e.type == 'I')
-        base = (float64)e.val.i;
+      if(eleft.type == 'I')
+        base = (float64)eleft.val.i;
       else
-        base = e.val.f;
-      if(r.type == 'I')
-        power = (float64)r.val.i;
+        base = eleft.val.f;
+      if(eright.type == 'I')
+        power = (float64)eright.val.i;
       else
-        power = r.val.f;
-      e.type = 'F';
-      e.val.f = pow(base, power);
+        power = eright.val.f;
+      eret.type = 'F';
+      eret.val.f = pow(base, power);
     }
     break;
   }
     /* n! if n is an I */
   case B_fact: {
-    if(e.type != 'I')
-      crash("wrong type in !: %c", e.type);
+    eleft = eval(bifcall->left);
+    if(eleft.type != 'I')
+      crash("wrong type in !: %c", eleft.type);
     else {
-      int64 i = e.val.i;
+      int64 i = eleft.val.i;
       int64 v = 1;
       while(i>0)
         v *= i--;
-      e.val.i = v;
+      eret.type = 'I';
+      eret.val.i = v;
     }
     break;
   }
 
     /* returns F if n is F or I */
   case B_float: {
-    if(e.type != 'I' && e.type != 'F')
-      crash("wrong type in conversion to float: %c", e.type);
+    eleft = eval(bifcall->left);
+    if(eleft.type != 'I' && eleft.type != 'F')
+      crash("wrong type in conversion to float: %c", eleft.type);
     else {
       /* must be I or F, if it's F, no need to do anything */
-      if(e.type == 'I') {
-        e.val.f = (float64)e.val.i;
-        e.type = 'F';
-      }
+      eret.type = 'F';
+      if(eleft.type == 'I')
+        eret.val.f = (float64)eleft.val.i;
+      else
+        eret.val.f = eleft.val.f;
     }
     break;
   }
 
     /* returns I if n is F or I (TRUNCATES F) */
   case B_int: {
-    if(e.type != 'I' && e.type != 'F')
-      crash("wrong type in conversion to int: %c", e.type);
+    eleft = eval(bifcall->left);
+    if(eleft.type != 'I' && eleft.type != 'F')
+      crash("wrong type in conversion to int: %c", eleft.type);
     else {
       /* must be I or F, if I, no need to do anything */
-      if(e.type == 'F') {
-        e.val.i = (int64)e.val.f;
-        e.type = 'I';
-      }
+      eret.type = 'I';
+      if(eleft.type == 'F')
+        eret.val.i = (int64)eleft.val.f;
+      else
+        eret.val.i = eleft.val.i;
     }
     break;
   }
 
     /* returns floor(F) */
   case B_floor: {
-    if(e.type == 'F')
-      e.val.f = floor(e.val.f);
+    eleft = eval(bifcall->left);
+    eret.type = 'F';
+    if(eleft.type == 'F')
+      eret.val.f = floor(eleft.val.f);
     else
-      crash("wrong type in floor: %c", e.type);
+      crash("wrong type in floor: %c", eleft.type);
     break;
   }
 
     /* returns ceil(F) */
   case B_ceil: {
-    if(e.type == 'F')
-      e.val.f = ceil(e.val.f);
+    eleft = eval(bifcall->left);
+    eret.type = 'F';
+    if(eleft.type == 'F')
+      eret.val.f = ceil(eleft.val.f);
     else
-      crash("wrong type in ceil: %c", e.type);
+      crash("wrong type in ceil: %c", eleft.type);
+    break;
+  }
+
+    /* defines an int */
+  case B_defint: {
+    eright = eval(bifcall->right);
+    if(eright.type != 'I')
+      crash("wrong type in defint: ref: %s, int: %s", eleft.type, eright.type);
+    smt_put(get_ref_name(bifcall->left) , new_intval(eright.val.i)); /* don't eval lhs */
+    /* TODO: make return type a string evaltype with the refname */
+    /* for now, just return true */
+    eret.type = 'I';
+    eret.val.i = eright.val.i;
     break;
   }
 
   default:
     crash("invalid built-in function: %d", bifcall->e.val.b);
   }
-  return e;
+  return eret;
 }
 
 evaltype

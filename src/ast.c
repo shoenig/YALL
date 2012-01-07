@@ -2,11 +2,12 @@
    Definitions for AST
    Seth Hoenig 2011 (seth.a.hoenig@gmail.com)
 */
-
 #include <stdlib.h>
 #include "stdtype.h"
 #include "ast.h"
 #include "err.h"
+#include "symbol.h"
+#include "symtable.h"
 #include "builtins.h"
 
 AST*
@@ -65,6 +66,14 @@ new_cmp(char cmp, AST* l, AST* r) {
   return ast;
 }
 
+AST*
+new_ref(char* refname) {
+  AST* ast = alloc_ast(sizeof(AST));
+  ast->nodetype = 'R';
+  ast->e.val.str = refname;
+  return ast;
+}
+
 
 /* allocate an AST, but only big enough for the type
    of node that is actually going to be created
@@ -77,55 +86,80 @@ alloc_ast(uint64 size) {
   return ast;
 }
 
+/* basically assume we have a ref type, which we can't eval because
+   the symtable doesn't have anything, we just want the char* name */
+char* get_ref_name(AST* tree) {
+  if(tree->nodetype != 'R')
+    crash("not a ref type in get_ref_name: %c", tree->nodetype);
+  return tree->e.val.str;
+}
+
 /* Does type inferenceing.. or something */
 /* TODO: pull type checking out of here and do it statically
    rather than at run time, that way we can assume everything
    is okay here and get rid of all this nasty branching */
 evaltype
 eval(AST* tree) {
+  Symbol* s;
+  evaltype eleft;
+  evaltype eright;
+  evaltype eret;
 
   if(tree == NULL)
     crash("internal error, null tree in eval");
 
   switch(tree->nodetype) {
-  case 'I':
-    tree->e.type = 'I';
+  case 'I': /* int */
+    eret.type = 'I';
+    eret.val.i = tree->e.val.i;
     break;
-  case 'F':
-    tree->e.type = 'F';
+  case 'F': /* float */
+    eret.type = 'F';
+    eret.val.f = tree->e.val.f;
     break;
-  case 'Z':
-    tree->e.type = 'Z';
+  case 'Z': /* boolean (true/false) */
+    eret.type = 'Z';
+    eret.val.bool = tree->e.val.bool;
     break;
-  case 'M':
-    tree->e = eval(tree->left);
-    switch(tree->e.type) {
-    case 'I': tree->e.val.i = -tree->e.val.i; break;
-    case 'F': tree->e.val.f = -tree->e.val.f; break;
+  case 'M': /* int or float */
+    eleft = eval(tree->left);
+    switch(eleft.type) {
+    case 'I': eret.type = 'I'; eret.val.i = -eleft.val.i; break;
+    case 'F': eret.type = 'F'; eret.val.f = -eleft.val.f; break;
     default:
       crash("typing error (I,F,M), e: %c", tree->e.type);
     }
     break;
 
+  case 'R':
+    /* lookup in the table, if it's not there, crash */
+    /* if it is there, evaluate what's in the table, set e to that */
+    s = smt_lookup(tree->e.val.str);
+
+    if(!s)
+      crash("undefined variable: %s", tree->e.val.str);
+    eret = eval(s->ast);
+    break;
+
   case 'B':
-    tree->e = call_builtin(tree);
+    eret = call_builtin(tree);
     break;
 
   case 'T':
-    tree->e = call_boolfunc(tree);
+    eret = call_boolfunc(tree);
     break;
 
   case '&':
   case '|': {
-    evaltype le = eval(tree->left);
-    evaltype re = eval(tree->right);
-    if(le.type != 'I' || re.type != 'I')
-      crash("typing error (&,|): le: %c, re: %c", le.type, re.type);
-    tree->e.type = 'I';
+    eleft = eval(tree->left);
+    eright = eval(tree->right);
+    if(eleft.type != 'I' || eright.type != 'I')
+      crash("typing error (&,|): le: %c, re: %c", eleft.type, eright.type);
+    eret.type = 'I';
     if(tree->nodetype == '&')
-      tree->e.val.i = le.val.i & re.val.i;
+      eret.val.i = eleft.val.i & eright.val.i;
     else
-      tree->e.val.i = le.val.i | re.val.i;
+      eret.val.i = eleft.val.i | eright.val.i;
     break;
   }
 
@@ -135,41 +169,41 @@ eval(AST* tree) {
   case '*':
   case '/': { /* compiler needs this {} b/c of nested switch */
 
-    evaltype le = eval(tree->left);
-    evaltype re = eval(tree->right);
+    evaltype eleft = eval(tree->left);
+    evaltype eright = eval(tree->right);
 
-    if(le.type != re.type)
-      crash("typing error (+,-,*,/), le: %c, re: %c", le.type, re.type);
+    if(eleft.type != eright.type)
+      crash("typing error (+,-,*,/), le: %c, re: %c", eleft.type, eright.type);
 
-    if(le.type == 'I')
-      tree->e.type = 'I';
-    else if(le.type == 'F')
-      tree->e.type = 'F';
+    if(eleft.type == 'I')
+      eret.type = 'I';
+    else if(eleft.type == 'F')
+      eret.type = 'F';
 
     switch(tree->nodetype) {
     case '+':
-      if(le.type == 'I')
-        tree->e.val.i = le.val.i + re.val.i;
-      else if(le.type == 'F')
-        tree->e.val.f = le.val.f + re.val.f;
+      if(eleft.type == 'I')
+        eret.val.i = eleft.val.i + eright.val.i;
+      else if(eleft.type == 'F')
+        eret.val.f = eleft.val.f + eright.val.f;
       break;
     case '-':
-      if(le.type == 'I')
-        tree->e.val.i = le.val.i - re.val.i;
-      else if(le.type == 'F')
-        tree->e.val.f = le.val.f - re.val.f;
+      if(eleft.type == 'I')
+        eret.val.i = eleft.val.i - eright.val.i;
+      else if(eleft.type == 'F')
+        eret.val.f = eleft.val.f - eright.val.f;
       break;
     case '*':
-      if(le.type == 'I')
-        tree->e.val.i = le.val.i * re.val.i;
-      else if(le.type == 'F')
-        tree->e.val.f = le.val.f * re.val.f;
+      if(eleft.type == 'I')
+        eret.val.i = eleft.val.i * eright.val.i;
+      else if(eleft.type == 'F')
+        eret.val.f = eleft.val.f * eright.val.f;
       break;
     case '/':
-      if(le.type == 'I')
-        tree->e.val.i = le.val.i / re.val.i;
-      else if(le.type == 'F')
-        tree->e.val.f = le.val.f / re.val.f;
+      if(eleft.type == 'I')
+        eret.val.i = eleft.val.i / eright.val.i;
+      else if(eleft.type == 'F')
+        eret.val.f = eleft.val.f / eright.val.f;
       break;
 
     default:
@@ -177,7 +211,7 @@ eval(AST* tree) {
     }
   }
   }
-  return tree->e;
+  return eret;
 }
 
 void
@@ -208,6 +242,7 @@ freeTREE(AST* tree) {
   case 'F': /* float */
   case 'I': /* int */
   case 'Z': /* boolean */
+  case 'R': /* reference name, maybe we should free e.val.str */
     break;
 
   default:

@@ -41,13 +41,7 @@ FEXP  ([Ee][-+]?[0-9]+)
 "or" { yylval.bfunc = T_or; return CMP; }
 "and" { yylval.bfunc = T_and; return CMP; }
 
-  /* names */
-  /*
-[a-zA-Z][a-zA-Z0-9_\-]* {
-  yylval.s = lookup(yytext);
-  return NAME;
-}
-  */
+
 
   /* floating point number */
 [0-9]+"."[0-9]*{FEXP}? |
@@ -151,6 +145,17 @@ FEXP  ([Ee][-+]?[0-9]+)
 "ceil" {
   yylval.bfunc = B_ceil;
   return BFUNC;
+}
+
+"defint" {
+  yylval.bfunc = B_defint;
+  return BFUNC;
+}
+
+  /* names */
+[a-zA-Z][a-zA-Z0-9]* {
+  yylval.c = strdup(yytext);
+  return NAME;
 }
 
   /* end of line */

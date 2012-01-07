@@ -20,7 +20,8 @@ typedef enum {
   B_fact,
   B_negate,
   B_floor,
-  B_ceil
+  B_ceil,
+  B_defint
 } bif;
 
 /* {in}equalities  */

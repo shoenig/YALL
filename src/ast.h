@@ -35,6 +35,7 @@ void yyerror(char* s, ...);
   'F': float64
   'B': built-in function
   'T': truth value (boolean)
+  'R': reference (of symtable)
   other: who cares for now?
 */
 typedef struct {
@@ -45,11 +46,12 @@ typedef struct {
     bif b;
     cmpf t;
     bool bool;
+    char* str;
   } val;
 } evaltype;
 
 
-/*typedef struct ast AST;*/
+/* AST */
 typedef struct ast_ {
   char nodetype;
   evaltype e;
@@ -58,22 +60,19 @@ typedef struct ast_ {
 } AST;
 
 
-/* typedef struct fncall { */
-/*   uint8_t nodetype; */
-/*   AST* left; */
-/*   enum builtin_funcs functype; */
-/* }; */
-
-
 AST* new_ast(char ntype, AST* l, AST* r);
 AST* new_floatval(float64 f);
 AST* new_intval(int64 i);
 AST* new_boolval(bool b);
 AST* new_bif(char bif, AST* l, AST* r);
 AST* new_cmp(char cmp, AST* l, AST* r);
+AST* new_ref(char* ref);
 
 /* allocate an AST given a size */
 AST* alloc_ast(uint64 size);
+
+/* returns refname of a 'R' type (without eval-ing) */
+char* get_ref_name(AST*);
 
 /* recursively evaluate an AST tree */
 evaltype eval(AST*);

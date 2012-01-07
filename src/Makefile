@@ -5,8 +5,8 @@ CCFLAGS = -std=c99 -O0 -Wall -pedantic -g
 # prod ccflags
 #CCFLAGS = -std=c99 -O2 -Wall -pedantic
 
-yall: lex.yy.c parser.tab.c main.c ast.o err.o utilz.o builtins.o globals.h
-	${CC} -O2 -o $@ parser.tab.c lex.yy.c ast.o err.o utilz.o builtins.o main.c -lfl -lm
+yall: lex.yy.c parser.tab.c main.c ast.o err.o utilz.o builtins.o symtable.o globals.h
+	${CC} -O2 -o $@ parser.tab.c lex.yy.c ast.o err.o utilz.o builtins.o symtable.o main.c -lfl -lm
 	mv yall ../
 
 ast.o: ast.h builtintypes.h ast.c
@@ -20,6 +20,9 @@ utilz.o: utilz.h utilz.c
 
 builtins.o: builtins.h builtins.c
 	${CC} ${CCFLAGS} -c -o builtins.o builtins.c
+
+symtable.o: symbol.h symtable.h symtable.c builtintypes.h
+	${CC} ${CCFLAGS} -c -o symtable.o symtable.c
 
 lex.yy.c: lexer.lex
 	flex lexer.lex

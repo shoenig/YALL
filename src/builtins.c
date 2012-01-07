@@ -200,7 +200,7 @@ call_builtin(AST* bifcall) {
       crash("need int expression in defint");
     eright = eval(bifcall->right);
     if(eright.type != 'I')
-      crash("wrong type in defint: ref: %s, int: %s", eleft.type, eright.type);
+      crash("wrong type in defint: %c", eright.type);
     smt_put(get_ref_name(bifcall->left) , new_intval(eright.val.i)); /* don't eval lhs */
     eret.type = 'I';
     eret.val.i = eright.val.i;
@@ -213,10 +213,23 @@ call_builtin(AST* bifcall) {
       crash("need float expression in deffloat");
     eright = eval(bifcall->right);
     if(eright.type != 'F')
-      crash("wrong type in deffloat: ref: %s, int: %s", eleft.type, eright.type);
+      crash("wrong type in deffloat: %c", eright.type);
     smt_put(get_ref_name(bifcall->left), new_floatval(eright.val.f)); /* no eval lhs */
     eret.type = 'F';
     eret.val.f = eright.val.f;
+    break;
+  }
+
+    /* define a boolean */
+  case B_defbool: {
+    if(bifcall->right == NULL)
+      crash("need bool expression in defbool");
+    eright = eval(bifcall->right);
+    if(eright.type != 'Z')
+      crash("wrong type in defbool: %c", eright.type);
+    smt_put(get_ref_name(bifcall->left), new_boolval(eright.val.bool)); /* no eval lhs */
+    eret.type = 'Z';
+    eret.val.bool = eright.val.bool;
     break;
   }
 

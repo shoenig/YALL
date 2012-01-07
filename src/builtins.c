@@ -196,14 +196,27 @@ call_builtin(AST* bifcall) {
 
     /* defines an int */
   case B_defint: {
+    if(bifcall->right == NULL)
+      crash("need int expression in defint");
     eright = eval(bifcall->right);
     if(eright.type != 'I')
       crash("wrong type in defint: ref: %s, int: %s", eleft.type, eright.type);
     smt_put(get_ref_name(bifcall->left) , new_intval(eright.val.i)); /* don't eval lhs */
-    /* TODO: make return type a string evaltype with the refname */
-    /* for now, just return true */
     eret.type = 'I';
     eret.val.i = eright.val.i;
+    break;
+  }
+
+    /* define a float */
+  case B_deffloat: {
+    if(bifcall->right == NULL)
+      crash("need float expression in deffloat");
+    eright = eval(bifcall->right);
+    if(eright.type != 'F')
+      crash("wrong type in deffloat: ref: %s, int: %s", eleft.type, eright.type);
+    smt_put(get_ref_name(bifcall->left), new_floatval(eright.val.f)); /* no eval lhs */
+    eret.type = 'F';
+    eret.val.f = eright.val.f;
     break;
   }
 

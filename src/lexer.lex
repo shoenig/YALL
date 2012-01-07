@@ -152,6 +152,11 @@ FEXP  ([Ee][-+]?[0-9]+)
   return BFUNC;
 }
 
+"deffloat" {
+  yylval.bfunc = B_deffloat;
+  return BFUNC;
+}
+
   /* names */
 [a-zA-Z][a-zA-Z0-9]* {
   yylval.c = strdup(yytext);

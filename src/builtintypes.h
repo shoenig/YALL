@@ -21,7 +21,8 @@ typedef enum {
   B_negate,
   B_floor,
   B_ceil,
-  B_defint
+  B_defint,
+  B_deffloat
 } bif;
 
 /* {in}equalities  */

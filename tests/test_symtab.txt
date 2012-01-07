@@ -1,0 +1,50 @@
+(defint foo 3) : 3
+foo : 3
+(foo) : 3
+(+ 2 foo) : 5
+(float foo) : 3.00
+(+ 1.0 (float foo)) : 4.00
+(defint bar 6) : 6
+(+ 2 bar) : 8
+(+ foo bar) : 9
+(/ (float bar) (float foo)) : 2.00
+(defint baz (+ 2 9)) : 11
+(defint a (- baz foo)) : 8
+(defint b (int (float foo))) : 3
+
+(deffloat f1 1.0) : 1.00
+f1 : 1.00
+(f1) : 1.00
+(+ 2.0 f1) : 3.00
+(+ f1 3.0) : 4.00
+(int f1) : 1
+(deffloat f2 2.0) : 2.00
+(+ f1 f2) : 3.00
+(+ f2 f1) : 3.00
+(- f1 f2) : -1.00
+(+ (int f1) (int f2)) : 3
+(deffloat f3 (+ f1 f2)) : 3.00
+(- f3 f1) : 2.00
+(- f3) : -3.00
+(deffloat f4 4.00) : 4.00
+(deffloat f5 5.00) : 5.00
+(deffloat f6 6.00) : 6.00
+(defint i1 1) : 1
+(defint i2 2) : 2
+(defint i3 3) : 3
+(defint i4 4) : 4
+foo : 3
+bar : 6
+baz : 11
+a : 8
+b : 3
+f1 : 1.00
+f2 : 2.00
+f3 : 3.00
+f4 : 4.00
+f5 : 5.00
+f6 : 6.00
+i1 : 1
+i2 : 2
+i3 : 3
+i4 : 4

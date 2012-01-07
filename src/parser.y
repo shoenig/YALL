@@ -89,7 +89,10 @@ yalllist: /* nothing */
     printf("%4.2f\n", e.val.f);
     break;
   case 'Z':
-    printf("%d\n", e.val.bool);
+    if(e.val.bool)
+      printf("true\n");
+    else
+      printf("false\n");
     break;
   default:
     printf("Unknown evaled type: %c\n> ", e.type);

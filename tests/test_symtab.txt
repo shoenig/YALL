@@ -48,13 +48,13 @@ i1 : 1
 i2 : 2
 i3 : 3
 i4 : 4
-(defbool p true) : 1
-p : 1
-(! p) : 0
-(defbool q false) : 0
-q : 0
-(! q) : 1
-(or p q) : 1
-(or q p) : 1
-(and p q) : 0
-(and q p) : 0
+(defbool p true) : true
+p : true
+(! p) : false
+(defbool q false) : false
+q : false
+(! q) : true
+(or p q) : true
+(or q p) : true
+(and p q) : false
+(and q p) : false

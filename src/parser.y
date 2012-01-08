@@ -71,8 +71,9 @@ sexp: CMP sexp sexp      { $$ = new_cmp($1, $2, $3); }
 |      BOOLEAN         { $$ = new_boolval($1); }
 |      '(' '-' sexp ')'  { $$ = new_ast('M', $3, NULL); }
 |     '(' sexp ')'    { $$ = $2; }
-|      BFUNC sexp     { $$ = new_bif($1, $2, NULL); }
+|      '(' BFUNC sexp ')'     { $$ = new_bif($2, $3, NULL); }
 |      '(' BFUNC sexp sexp ')' { $$ = new_bif($2, $3, $4); }
+|      '(' BFUNC sexp sexp sexp ')' { $$ = new_tribif($2, $3, $4, $5); }
 |    NAME            { $$ = new_ref($1); }
 ;
 

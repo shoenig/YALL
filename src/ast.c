@@ -45,7 +45,6 @@ new_boolval(bool b) {
   ast->e.val.bool = b;
   return ast;
 }
-
 AST*
 new_bif(char bif, AST* l, AST* r) {
   AST* ast = alloc_ast(sizeof(AST));
@@ -53,6 +52,18 @@ new_bif(char bif, AST* l, AST* r) {
   ast->e.val.b = bif;
   ast->left = l;
   ast->right = r;
+  ast->aux = NULL;
+  return ast;
+}
+
+AST*
+new_tribif(char bif, AST* l, AST* r, AST* aux) {
+  AST* ast = alloc_ast(sizeof(AST));
+  ast->nodetype = 'B';
+  ast->e.val.b = bif;
+  ast->left = l;
+  ast->right = r;
+  ast->aux = aux;
   return ast;
 }
 
@@ -221,8 +232,10 @@ freeTREE(AST* tree) {
 
   switch(tree->nodetype) {
     /* types that have THREE subtrees */
-    /* (currently there are none */
-    
+  case 'B': /* various builtin functions */
+    if(tree->aux != NULL)
+      freeTREE(tree->aux);
+
     /* fall-through to types that have TWO subtrees */
   case '+':
   case '-':
@@ -231,7 +244,6 @@ freeTREE(AST* tree) {
   case '&':
   case '|':
   case 'T': /* truth function */
-  case 'B': /* various builtin functions */
     freeTREE(tree->right);
 
     /* fall-through to types with ONE subtree */
@@ -247,8 +259,8 @@ freeTREE(AST* tree) {
 
   default:
     /* you probably added a node type and forgot to add it here */
-    crash("internal error in freeing tree, bad node type: %c",
-            tree->nodetype);
+    crash("internal error in freeing tree, bad node type: %c (%d)",
+          tree->nodetype, tree->nodetype);
   }
   /* actually delete this node, (all children have been deleted) */
   free(tree);

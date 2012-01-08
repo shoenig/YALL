@@ -162,6 +162,11 @@ FEXP  ([Ee][-+]?[0-9]+)
   return BFUNC;
 }
 
+"if" {
+  yylval.bfunc = B_if;
+  return BFUNC;
+}
+
   /* names */
 [a-zA-Z][a-zA-Z0-9]* {
   yylval.c = strdup(yytext);

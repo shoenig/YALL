@@ -57,6 +57,7 @@ typedef struct ast_ {
   evaltype e;
   struct ast_* left;
   struct ast_* right;
+  struct ast_* aux; /* for ternary things */
 } AST;
 
 
@@ -65,6 +66,7 @@ AST* new_floatval(float64 f);
 AST* new_intval(int64 i);
 AST* new_boolval(bool b);
 AST* new_bif(char bif, AST* l, AST* r);
+AST* new_tribif(char bif, AST* l, AST* m, AST* r);
 AST* new_cmp(char cmp, AST* l, AST* r);
 AST* new_ref(char* ref);
 

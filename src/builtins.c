@@ -233,6 +233,26 @@ call_builtin(AST* bifcall) {
     break;
   }
 
+    /* if statement */
+  case B_if: {
+    if(bifcall->left == NULL || bifcall->right == NULL)
+      crash("no contents in if\n");
+    eleft = eval(bifcall->left); /* the boolean conditional */
+    if(eleft.type != 'Z')
+      crash("expected boolean in if statement, got: %c", eleft.type);
+    if(eleft.val.bool) { /* execute right (the true condition) */
+      eret = eval(bifcall->right);
+    } else {
+      if(bifcall->aux != NULL) { /* the else branch */
+        eret = eval(bifcall->aux);
+      } else { /* condition was not true and there was no else, evalute to false for now */
+        eret.type = 'Z';
+        eret.val.bool = false;
+      }
+    }
+    break;
+  }
+
   default:
     crash("invalid built-in function: %d", bifcall->e.val.b);
   }

@@ -39,8 +39,7 @@
  /* associativities */
 
 %nonassoc UMINUS
- /*%nonassoc <fn> CMP
- /*%right '='*/
+%left '='
 %left '+' '-'
 %left '*' '/'
 
@@ -59,6 +58,7 @@
  /* sexp is a symbolic expression */
  /* an exp is an (going to be an) INFIX expression */
 sexp: CMP sexp sexp      { $$ = new_cmp($1, $2, $3); }
+|     '=' sexp sexp    { $$ = new_ast('=', $2, $3); }
 |     '+' sexp sexp    { $$ = new_ast('+', $2, $3); }
 |     '-' sexp sexp    { $$ = new_ast('-', $2, $3); }
 |     '*' sexp sexp    { $$ = new_ast('*', $2, $3); }

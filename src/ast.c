@@ -9,6 +9,7 @@
 #include "symbol.h"
 #include "symtable.h"
 #include "builtins.h"
+#include "utilz.h"
 
 AST*
 new_ast(char ntype, AST* l, AST* r) {
@@ -111,7 +112,6 @@ char* get_ref_name(AST* tree) {
    is okay here and get rid of all this nasty branching */
 evaltype
 eval(AST* tree) {
-  Symbol* s;
   evaltype eleft;
   evaltype eright;
   evaltype eret;
@@ -142,7 +142,8 @@ eval(AST* tree) {
     }
     break;
 
-  case 'R':
+  case 'R': {
+    Symbol* s;
     /* lookup in the table, if it's not there, crash */
     /* if it is there, evaluate what's in the table, set e to that */
     s = smt_lookup(tree->e.val.str);
@@ -151,6 +152,7 @@ eval(AST* tree) {
       crash("undefined variable: %s", tree->e.val.str);
     eret = eval(s->ast);
     break;
+  }
 
   case 'B':
     eret = call_builtin(tree);
@@ -171,6 +173,34 @@ eval(AST* tree) {
       eret.val.i = eleft.val.i & eright.val.i;
     else
       eret.val.i = eleft.val.i | eright.val.i;
+    break;
+  }
+
+  case '=': {
+    Symbol* s;
+    /* don't eval left, just want the name */
+    s = smt_lookup(tree->left->e.val.str);
+    if(!s)
+      crash("cannot assign to undeclared variable: %s", s);
+    eright = eval(tree->right);  /* value to be assigned */
+    if(s->ast->nodetype != eright.type)
+      crash("cannot assign type %c to var of type %c", eright.type, s->ast->nodetype);
+
+    /* need an ast wrapper */
+    AST* tmp;
+    switch(eright.type) {
+    case 'I':
+      tmp = new_intval(eright.val.i);
+      break;
+    case 'F':
+      tmp = new_floatval(eright.val.f);
+      break;
+    case 'Z':
+      tmp = new_boolval(eright.val.bool);
+      break;
+    }
+    smt_put(s->name, tmp);
+    eret = eright;
     break;
   }
 
@@ -231,12 +261,14 @@ freeTREE(AST* tree) {
     return;
 
   switch(tree->nodetype) {
+    /* various builtin functions */
     /* types that have THREE subtrees */
-  case 'B': /* various builtin functions */
+  case 'B':
     if(tree->aux != NULL)
       freeTREE(tree->aux);
 
     /* fall-through to types that have TWO subtrees */
+  case '=':
   case '+':
   case '-':
   case '*':

@@ -28,6 +28,7 @@ void smt_init() {
   }
 }
 
+/* returns pointer to the Symbol, NULL if ref is not in the table */
 Symbol* smt_lookup(char* name) {
   size_t idx = 0;
   while(idx < TABLESIZE) {

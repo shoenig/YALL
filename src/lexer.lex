@@ -21,6 +21,7 @@ FEXP  ([Ee][-+]?[0-9]+)
 %%
 
   /* single character ops */
+"=" |
 "+" |
 "-" |
 "*" |

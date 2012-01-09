@@ -10,6 +10,7 @@
 #include "builtintypes.h"
 #include "err.h"
 #include "symtable.h"
+#include "typedecoder.h"
 
 evaltype
 call_builtin(AST* bifcall) {
@@ -29,7 +30,7 @@ call_builtin(AST* bifcall) {
       float64 conv = (float64)eleft.val.i;
       eret.val.f = sqrt(conv);
     } else
-      crash("wrong type in sqrt: %c", eleft.type);
+      crash("need FLOAT or INT in sqrt, got: %s", type_decode(eleft.type));
     break;
   }
 
@@ -40,7 +41,7 @@ call_builtin(AST* bifcall) {
     if(eleft.type == 'Z')
       eret.val.bool = !eleft.val.bool;
     else
-      crash("cannot invert non-boolean: %c", eleft.type);
+      crash("need BOOLEAN in logical negation, got: %s", type_decode(eleft.type));
     break;
   }
 
@@ -54,7 +55,7 @@ call_builtin(AST* bifcall) {
       eret.type = 'I';
       eret.val.i = eleft.val.i < 0 ? -eleft.val.i : eleft.val.i;
     } else
-      crash("wrong type in abs: %c", eleft.type);
+      crash("need INT or FLOAT in abs, got: %s", type_decode(eleft.type));
     break;
   }
 
@@ -68,7 +69,7 @@ call_builtin(AST* bifcall) {
       float64 conv = (float64)eleft.val.i;
       eret.val.f = log(conv);
     } else
-      crash("wrong type in log: %c", eleft.type);
+      crash("need INT or FLOAT in log, got: %s", type_decode(eleft.type));
     break;
   }
 
@@ -82,7 +83,7 @@ call_builtin(AST* bifcall) {
       float64 conv = (float64)eleft.val.i;
       eret.val.f = log10(conv);
     } else
-      crash("wrong type in log10: %c", eleft.type);
+      crash("need INT or FLOAT in log10, got: %s", type_decode(eleft.type));
     break;
   }
 
@@ -96,7 +97,7 @@ call_builtin(AST* bifcall) {
       float64 conv = (float64)eleft.val.i;
       eret.val.f = (log10(conv)/log10(2.0));
     } else
-      crash("wrong type in log10: %c", eleft.type);
+      crash("need INT or FLOAT in log2, got: %s", type_decode(eleft.type));
     break;
   }
 
@@ -104,6 +105,10 @@ call_builtin(AST* bifcall) {
   case B_pow: {
     eleft = eval(bifcall->left);
     eright = eval(bifcall->right);
+    if( (eleft.type != 'I' && eleft.type != 'F') ||
+        (eright.type != 'I' && eright.type != 'F'))
+      crash("need INT or FLOAT in pow, got: %s, %s",
+            type_decode(eleft.type), type_decode(eright.type));
     if(eleft.type == 'I' && eright.type == 'I') { /* return an int */
       float64 f = pow(eleft.val.i, eright.val.i);
       int64 i = (int64)f;
@@ -128,7 +133,7 @@ call_builtin(AST* bifcall) {
   case B_fact: {
     eleft = eval(bifcall->left);
     if(eleft.type != 'I')
-      crash("wrong type in !: %c", eleft.type);
+      crash("need INT in !, got: %s", type_decode(eleft.type));
     else {
       int64 i = eleft.val.i;
       int64 v = 1;
@@ -144,7 +149,7 @@ call_builtin(AST* bifcall) {
   case B_float: {
     eleft = eval(bifcall->left);
     if(eleft.type != 'I' && eleft.type != 'F')
-      crash("wrong type in conversion to float: %c", eleft.type);
+      crash("need INT or FLOAT in float conversion, got: %s", type_decode(eleft.type));
     else {
       /* must be I or F, if it's F, no need to do anything */
       eret.type = 'F';
@@ -160,7 +165,7 @@ call_builtin(AST* bifcall) {
   case B_int: {
     eleft = eval(bifcall->left);
     if(eleft.type != 'I' && eleft.type != 'F')
-      crash("wrong type in conversion to int: %c", eleft.type);
+      crash("need INT or FLOAT in int conversion, got: %s", type_decode(eleft.type));
     else {
       /* must be I or F, if I, no need to do anything */
       eret.type = 'I';
@@ -179,7 +184,7 @@ call_builtin(AST* bifcall) {
     if(eleft.type == 'F')
       eret.val.f = floor(eleft.val.f);
     else
-      crash("wrong type in floor: %c", eleft.type);
+      crash("need FLOAT in floor, got: %s", type_decode(eleft.type));
     break;
   }
 
@@ -190,17 +195,17 @@ call_builtin(AST* bifcall) {
     if(eleft.type == 'F')
       eret.val.f = ceil(eleft.val.f);
     else
-      crash("wrong type in ceil: %c", eleft.type);
+      crash("need FLOAT in ceil, got: %s", type_decode(eleft.type));
     break;
   }
 
     /* defines an int */
   case B_defint: {
     if(bifcall->right == NULL)
-      crash("need int expression in defint");
+      crash("need expression in defint");
     eright = eval(bifcall->right);
     if(eright.type != 'I')
-      crash("wrong type in defint: %c", eright.type);
+      crash("need INT in defint, got: %s", type_decode(eright.type));
     smt_put(get_ref_name(bifcall->left) , new_intval(eright.val.i)); /* don't eval lhs */
     eret.type = 'I';
     eret.val.i = eright.val.i;
@@ -210,10 +215,10 @@ call_builtin(AST* bifcall) {
     /* define a float */
   case B_deffloat: {
     if(bifcall->right == NULL)
-      crash("need float expression in deffloat");
+      crash("need expression in deffloat");
     eright = eval(bifcall->right);
     if(eright.type != 'F')
-      crash("wrong type in deffloat: %c", eright.type);
+      crash("need FLOAT in deffloat, got: %s", type_decode(eright.type));
     smt_put(get_ref_name(bifcall->left), new_floatval(eright.val.f)); /* no eval lhs */
     eret.type = 'F';
     eret.val.f = eright.val.f;
@@ -223,10 +228,10 @@ call_builtin(AST* bifcall) {
     /* define a boolean */
   case B_defbool: {
     if(bifcall->right == NULL)
-      crash("need bool expression in defbool");
+      crash("need expression in defbool");
     eright = eval(bifcall->right);
     if(eright.type != 'Z')
-      crash("wrong type in defbool: %c", eright.type);
+      crash("need BOOLEAN in defbool, got: %s", type_decode(eright.type));
     smt_put(get_ref_name(bifcall->left), new_boolval(eright.val.bool)); /* no eval lhs */
     eret.type = 'Z';
     eret.val.bool = eright.val.bool;
@@ -239,7 +244,7 @@ call_builtin(AST* bifcall) {
       crash("no contents in if\n");
     eleft = eval(bifcall->left); /* the boolean conditional */
     if(eleft.type != 'Z')
-      crash("expected boolean in if statement, got: %c", eleft.type);
+      crash("need BOOLEAN in if conditional, got: %s", type_decode(eleft.type));
     if(eleft.val.bool) { /* execute right (the true condition) */
       eret = eval(bifcall->right);
     } else {
@@ -277,7 +282,7 @@ call_boolfunc(AST* bftree) {
       else if(l.type=='Z')
         res.val.bool = (l.val.bool != r.val.bool);
       else
-        crash("invalid type in != : %c", l.type);
+        crash("invalid type in != : %s", type_decode(l.type));
     }
     break;
   case T_equal:
@@ -291,7 +296,7 @@ call_boolfunc(AST* bftree) {
       else if(l.type=='Z')
         res.val.bool = (l.val.bool == r.val.bool);
       else
-        crash("invalid type in == : %c", l.type);
+        crash("invalid type in == : %s", type_decode(l.type));
     break;
   case T_greater_than:
     if(l.type=='I' && r.type=='I')
@@ -299,7 +304,7 @@ call_boolfunc(AST* bftree) {
     else if(l.type=='F' && r.type=='F')
       res.val.bool = (l.val.f > r.val.f);
     else
-      crash("type conflict in > : %c, %c", l.type, r.type);
+      crash("type conflict in > : %s, %s", type_decode(l.type), type_decode(r.type));
     break;
   case T_less_than:
     if(l.type=='I' && r.type=='I')
@@ -307,7 +312,7 @@ call_boolfunc(AST* bftree) {
     else if(l.type=='F' && r.type=='F')
       res.val.bool = (l.val.f < r.val.f);
     else
-      crash("type conflict in < : %c, %c", l.type, r.type);
+      crash("type conflict in < : %s, %s", type_decode(l.type), type_decode(r.type));
     break;
   case T_greater_than_equal:
     if(l.type=='I' && r.type=='I')
@@ -315,7 +320,7 @@ call_boolfunc(AST* bftree) {
     else if(l.type=='F' && r.type=='F')
       res.val.bool = (l.val.f >= r.val.f);
     else
-      crash("type conflict in >= : %c, %c", l.type, r.type);
+      crash("type conflict in >= : %s, %s", type_decode(l.type), type_decode(r.type));
     break;
   case T_less_than_equal:
     if(l.type=='I' && r.type=='I')
@@ -323,19 +328,21 @@ call_boolfunc(AST* bftree) {
     else if(l.type=='F' && r.type=='F')
       res.val.bool = (l.val.f <= r.val.f);
     else
-      crash("type conflict in <= : %c, %c", l.type, r.type);
+      crash("type conflict in <= : %s, %s", type_decode(l.type), type_decode(r.type));
     break;
   case T_or:
     if(l.type=='Z' && r.type=='Z')
       res.val.bool = (l.val.bool || r.val.bool);
     else
-      crash("non boolean in or  : %c, %c", l.type, r.type);
+      crash("need BOOLEAN in or, got: %s, %s",
+            type_decode(l.type), type_decode(r.type));
     break;
   case T_and:
     if(l.type=='Z' && r.type=='Z')
       res.val.bool = (l.val.bool && r.val.bool);
     else
-      crash("non boolean in and : %c, %c", l.type, r.type);
+      crash("need BOOLEAN in and, got: %s, %s",
+            type_decode(l.type), type_decode(r.type));
     break;
 
   default:

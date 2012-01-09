@@ -10,6 +10,7 @@
 #include "symtable.h"
 #include "builtins.h"
 #include "utilz.h"
+#include "typedecoder.h"
 
 AST*
 new_ast(char ntype, AST* l, AST* r) {
@@ -102,7 +103,7 @@ alloc_ast(uint64 size) {
    the symtable doesn't have anything, we just want the char* name */
 char* get_ref_name(AST* tree) {
   if(tree->nodetype != 'R')
-    crash("not a ref type in get_ref_name: %c", tree->nodetype);
+    crash("not a ref type in get_ref_name: %s", type_decode(tree->nodetype));
   return tree->e.val.str;
 }
 
@@ -138,7 +139,7 @@ eval(AST* tree) {
     case 'I': eret.type = 'I'; eret.val.i = -eleft.val.i; break;
     case 'F': eret.type = 'F'; eret.val.f = -eleft.val.f; break;
     default:
-      crash("typing error (I,F,M), e: %c", tree->e.type);
+      crash("typing error (I,F,M), e: %s", type_decode(tree->e.type));
     }
     break;
 
@@ -167,7 +168,8 @@ eval(AST* tree) {
     eleft = eval(tree->left);
     eright = eval(tree->right);
     if(eleft.type != 'I' || eright.type != 'I')
-      crash("typing error (&,|): le: %c, re: %c", eleft.type, eright.type);
+      crash("typing error (&,|): le: %s, re: %s",
+            type_decode(eleft.type), type_decode(eright.type));
     eret.type = 'I';
     if(tree->nodetype == '&')
       eret.val.i = eleft.val.i & eright.val.i;
@@ -184,7 +186,8 @@ eval(AST* tree) {
       crash("cannot assign to undeclared variable: %s", s);
     eright = eval(tree->right);  /* value to be assigned */
     if(s->ast->nodetype != eright.type)
-      crash("cannot assign type %c to var of type %c", eright.type, s->ast->nodetype);
+      crash("cannot assign type %s to var of type %s",
+            type_decode(eright.type), type_decode(s->ast->nodetype));
 
     /* need an ast wrapper */
     AST* tmp;
@@ -214,7 +217,8 @@ eval(AST* tree) {
     evaltype eright = eval(tree->right);
 
     if(eleft.type != eright.type)
-      crash("typing error (+,-,*,/), le: %c, re: %c", eleft.type, eright.type);
+      crash("typing error (+,-,*,/), le: %s, re: %s",
+            type_decode(eleft.type), type_decode(eright.type));
 
     if(eleft.type == 'I')
       eret.type = 'I';
@@ -248,7 +252,8 @@ eval(AST* tree) {
       break;
 
     default:
-      crash("invalid binary built-in function: %c", tree->nodetype);
+      crash("invalid binary built-in function: %s",
+            type_decode(tree->nodetype));
     }
   }
   }
@@ -291,8 +296,8 @@ freeTREE(AST* tree) {
 
   default:
     /* you probably added a node type and forgot to add it here */
-    crash("internal error in freeing tree, bad node type: %c (%d)",
-          tree->nodetype, tree->nodetype);
+    crash("internal error in freeing tree, bad node type: %s (%d)",
+          type_decode(tree->nodetype), type_decode(tree->nodetype));
   }
   /* actually delete this node, (all children have been deleted) */
   free(tree);

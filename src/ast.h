@@ -14,30 +14,6 @@
 extern int yylineno;
 void yyerror(char* s, ...);
 
-/* TODO: fix the following nonsense */
-/* node types
-* + - * / | &
-* 0-7 comparison ops, bit coded 04 equal, 02 less, 01 greater
-* M unary minus
-* L expression or statement list
-* I IF statement
-* W WHILE statement
-* N symbol ref
-* = assignment
-* S list of symbols
-* F built in function call
-* C user function call
-*/
-
-
-/* etypes:
-  'I': int64
-  'F': float64
-  'B': built-in function
-  'T': truth value (boolean)
-  'R': reference (of symtable)
-  other: who cares for now?
-*/
 typedef struct {
   char type;
   union {

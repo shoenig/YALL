@@ -3,6 +3,7 @@
 
 import os
 import string
+import sys
 
 def run(fname):
     print 'running: ' + fname
@@ -20,7 +21,17 @@ def run(fname):
     os.system('../yall /tmp/in > /tmp/out')
     os.system('diff /tmp/exp /tmp/out')
 
-for _, _, filenames in os.walk('.'):
-    for fname in filenames:
-        if fname[0:5]=='test_':
-            run(fname)
+
+def drill():
+    for _, _, filenames in os.walk('.'):
+        for fname in filenames:
+            if fname[0:5]=='test_':
+                run(fname)
+
+# start here
+print "YALL Test Cases"
+if(len(sys.argv) == 1):
+    drill() # run all test case files we can find
+else:
+    for f in sys.argv[1:]:
+        run(f)

@@ -37,12 +37,30 @@ stlen(char* str) {
 
 /* duplicate string */
 char*
-strdup(char* str) {
+str_dup(char* str) {
   size_t len = stlen(str);
-  char* nstr = (char*) malloc(len * sizeof(char) + 1);
+  char* nstr = malloc(len * sizeof(char) + 1);
   nstr[len] = '\0';
   for( ; len>0 ; len--)
     nstr[len] = str[len];
   nstr[0] = str[0];
+  return nstr;
+}
+
+
+/* cat two strings, automatically allocating enough space */
+char*
+str_ezcat(char* stra, char* strb) {
+  size_t lenA = stlen(stra);
+  size_t lenB = stlen(strb);
+  size_t len = lenA + lenB;
+  size_t idx = 0;
+  size_t j;
+  char* nstr = malloc(len * sizeof(char) + 1);
+  nstr[len] = '\0';
+  for(j=0; j<lenA; j++)
+    nstr[idx++] = stra[j];
+  for(j=0; j<lenB; j++)
+    nstr[idx++] = strb[j];
   return nstr;
 }

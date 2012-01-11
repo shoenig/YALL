@@ -9,6 +9,8 @@ size_t stlen(char* str);
 
 int htoi(char* hex);
 
-char* strdup(char* str);
+char* str_dup(char* str);
+
+char* str_ezcat(char* stra, char* strb);
 
 #endif

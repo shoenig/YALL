@@ -11,6 +11,7 @@
 #include "stdtype.h"
 #include "ast.h"
 #include "symbol.h"
+#include "stringer.h"
 %}
 
 %union {
@@ -44,16 +45,14 @@
 %left '*' '/'
 
 %type <a> sexp
-/* %type <a> list */
-/* %type <a> rlist */
- /* explist at some point is <a> */
- /*%type <sl> symlist */
+%type <a> list
 
 %start yalllist
 
 %%
 
  /* grammer */
+
 
  /* sexp is a symbolic expression */
  /* an exp is an (going to be an) INFIX expression */
@@ -75,29 +74,24 @@ sexp: CMP sexp sexp      { $$ = new_cmp($1, $2, $3); }
 |      '(' BFUNC sexp sexp ')' { $$ = new_bif($2, $3, $4); }
 |      '(' BFUNC sexp sexp sexp ')' { $$ = new_tribif($2, $3, $4, $5); }
 |    NAME            { $$ = new_ref($1); }
+|    '[' list ']' { $$ = new_list($2); }
 ;
+
+ /* list (of the form: [a, b, c]) */
+list: { $$ = NULL; }
+| sexp list { $$ = new_list_element($1, $2); }
+;
+
 
  /* yalllist, top level */ 
 yalllist: /* nothing */
 | yalllist sexp EOL {
 
   evaltype e = eval($2);
-  switch(e.type) {
-  case 'I':
-    printf("%lld\n", e.val.i);
-    break;
-  case 'F':
-    printf("%4.2f\n", e.val.f);
-    break;
-  case 'Z':
-    if(e.val.bool)
-      printf("true\n");
-    else
-      printf("false\n");
-    break;
-  default:
-    printf("Unknown evaled type: %c\n> ", e.type);
-  }
+  char* str = str_evaltype(e);
+  printf("%s\n", str);
+  free(str);
+
   if(reading_stdin)
     printf("> ");
   freeTREE($2);

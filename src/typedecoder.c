@@ -5,7 +5,8 @@
 #include "typedecoder.h"
 
 /* DO NOT CHANGE ORDER!!! */
-char* typelist[] = {"UNKNOWN", "BOOLEAN", "INT", "FLOAT", "REFERENCE"};
+char* typelist[] = {"UNKNOWN", "BOOLEAN", "INT", "FLOAT", "REFERENCE",
+                    "LIST", "LISTELEMENT"};
 
 char*
 type_decode(char type) {
@@ -14,6 +15,8 @@ type_decode(char type) {
   case 'I': return typelist[2];
   case 'F': return typelist[3];
   case 'R': return typelist[4];
+  case 'L': return typelist[5];
+  case 'E': return typelist[6];
   default : return typelist[0];
   }
 }

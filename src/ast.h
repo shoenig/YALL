@@ -7,8 +7,10 @@
 #ifndef YALL_AST_H
 #define YALL_AST_H
 
+#include "list.h"
 #include "stdtype.h"
 #include "builtintypes.h"
+
 
 /* interface to lexer */
 extern int yylineno;
@@ -22,10 +24,10 @@ typedef struct {
     bif b;
     cmpf t;
     bool bool;
+    List* list;
     char* str;
   } val;
 } evaltype;
-
 
 /* AST */
 typedef struct ast_ {
@@ -33,7 +35,7 @@ typedef struct ast_ {
   evaltype e;
   struct ast_* left;
   struct ast_* right;
-  struct ast_* aux; /* for ternary things */
+  struct ast_* aux; /* for ternary builtins */
 } AST;
 
 
@@ -45,6 +47,8 @@ AST* new_bif(char bif, AST* l, AST* r);
 AST* new_tribif(char bif, AST* l, AST* m, AST* r);
 AST* new_cmp(char cmp, AST* l, AST* r);
 AST* new_ref(char* ref);
+AST* new_list(AST* first);
+AST* new_list_element(AST* this, AST* next);
 
 /* allocate an AST given a size */
 AST* alloc_ast(uint64 size);

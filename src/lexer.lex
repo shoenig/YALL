@@ -13,6 +13,7 @@
 #include "err.h"
 #include "builtins.h"
 #include "parser.tab.h"
+#include "utilz.h"
 %}
 
   /* float exponent */
@@ -28,6 +29,8 @@ FEXP  ([Ee][-+]?[0-9]+)
 "/" |
 "&" |
 "|" |
+"[" |
+"]" |
 "(" |
 ")"  { return yytext[0]; }
 
@@ -170,7 +173,7 @@ FEXP  ([Ee][-+]?[0-9]+)
 
   /* names */
 [a-zA-Z][a-zA-Z0-9]* {
-  yylval.c = strdup(yytext);
+  yylval.c = str_dup(yytext);
   return NAME;
 }
 

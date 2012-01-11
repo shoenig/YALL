@@ -11,6 +11,7 @@
 #include "builtins.h"
 #include "utilz.h"
 #include "typedecoder.h"
+#include "list.h"
 
 AST*
 new_ast(char ntype, AST* l, AST* r) {
@@ -87,6 +88,22 @@ new_ref(char* refname) {
   return ast;
 }
 
+AST* /* a list points to first element */
+new_list(AST* e1) {
+  AST* ast = alloc_ast(sizeof(AST));
+  ast->nodetype = 'L';
+  ast->e.val.list = list_make(e1);
+  return ast;
+}
+
+AST* /* each element points to contents and next element */
+new_list_element(AST* e, AST* next) {
+  AST* ast = alloc_ast(sizeof(AST));
+  ast->nodetype = 'E';
+  ast->left = e;
+  ast->right = next;
+  return ast;
+}
 
 /* allocate an AST, but only big enough for the type
    of node that is actually going to be created
@@ -143,6 +160,11 @@ eval(AST* tree) {
     }
     break;
 
+  case 'L': { /* a list */
+    eret.type = 'L';
+    eret.val.list = tree->e.val.list;
+    break;
+  }
   case 'R': {
     Symbol* s;
     /* lookup in the table, if it's not there, crash */
@@ -292,6 +314,14 @@ freeTREE(AST* tree) {
   case 'I': /* int */
   case 'Z': /* boolean */
   case 'R': /* reference name, maybe we should free e.val.str */
+    break;
+
+  case 'L': /* list */
+    freeTREE(tree->left); /* go to first element */
+    break;
+  case 'E': /* list element */
+    freeTREE(tree->right); /* go to next element as well */
+    freeTREE(tree->left); /* clear this element */
     break;
 
   default:

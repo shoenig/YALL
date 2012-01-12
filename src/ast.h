@@ -16,6 +16,10 @@
 extern int yylineno;
 void yyerror(char* s, ...);
 
+/* evaltype is what every sexp eventually gets evaluated to. it contains
+   info about itself with evaltype.type, which lets you know which value
+   from the evaltype.val union you should be looking at. for example, if
+   evaltype.type == 'F', then you want evaltype.val.f */
 typedef struct {
   char type;
   union {

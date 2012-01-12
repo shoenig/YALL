@@ -133,6 +133,7 @@ eval(AST* tree) {
   evaltype eleft;
   evaltype eright;
   evaltype eret;
+  eret.type = '!'; /* gcc nonsense */
 
   if(tree == NULL)
     crash("internal error, null tree in eval");
@@ -223,8 +224,12 @@ eval(AST* tree) {
     case 'Z':
       tmp = new_boolval(eright.val.bool);
       break;
+    default:
+      tmp = NULL;
+      crash("cannot wrap type: (%d) %c", eright.type, eright.type);
     }
     smt_put(s->name, tmp);
+    eret.type = eright.type;
     eret = eright;
     break;
   }
@@ -326,7 +331,7 @@ freeTREE(AST* tree) {
 
   default:
     /* you probably added a node type and forgot to add it here */
-    crash("internal error in freeing tree, bad node type: %s (%d)",
+    crash("internal error in freeing tree, bad node type: (%d) %s ",
           type_decode(tree->nodetype), type_decode(tree->nodetype));
   }
   /* actually delete this node, (all children have been deleted) */

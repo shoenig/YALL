@@ -15,16 +15,13 @@
 %}
 
 %union {
-  AST* a;     /* abstract syntax tree */
+  AST* ast;     /* abstract syntax tree */
   float64 f;  /* 64 bit floating point */
   int64 i;    /* 64 bit integral */
   bool b;     /* boolean value */
   char bfunc; /* built in func */
   char tfunc; /* boolean func */
-  char* c; /* name, reference name */
-  /*  Symbol* s; /* which symbol */
-  /*Symlist* sl; /* list o' symbols */
-  /*uint64_t func; /* which function */
+  char* c;    /* name, reference name */
 }
 
  /* tokens */
@@ -44,47 +41,44 @@
 %left '+' '-'
 %left '*' '/'
 
-%type <a> sexp
-%type <a> list
+%type <ast> sexp
+%type <ast> list
 
 %start yalllist
 
 %%
 
- /* grammer */
-
-
+ /* grammer (consists of sexp, list, and yalllist) */
  /* sexp is a symbolic expression */
- /* an exp is an (going to be an) INFIX expression */
-sexp: CMP sexp sexp      { $$ = new_cmp($1, $2, $3); }
-|     '=' sexp sexp    { $$ = new_ast('=', $2, $3); }
-|     '+' sexp sexp    { $$ = new_ast('+', $2, $3); }
-|     '-' sexp sexp    { $$ = new_ast('-', $2, $3); }
-|     '*' sexp sexp    { $$ = new_ast('*', $2, $3); }
-|     '/' sexp sexp    { $$ = new_ast('/', $2, $3); }
-|     '&' sexp sexp    { $$ = new_ast('&', $2, $3); }
-|     '|' sexp sexp    { $$ = new_ast('|', $2, $3); }
-|      PI              { $$ = new_floatval(3.14159); }
-|      FLOAT           { $$ = new_floatval($1); }
-|      INT             { $$ = new_intval($1); }
-|      BOOLEAN         { $$ = new_boolval($1); }
-|      '(' '-' sexp ')'  { $$ = new_ast('M', $3, NULL); }
-|     '(' sexp ')'    { $$ = $2; }
-|      '(' BFUNC sexp ')'     { $$ = new_bif($2, $3, NULL); }
-|      '(' BFUNC sexp sexp ')' { $$ = new_bif($2, $3, $4); }
+sexp: CMP sexp sexp                 { $$ = new_cmp($1, $2, $3); }
+|     '=' sexp sexp                 { $$ = new_ast('=', $2, $3); }
+|     '+' sexp sexp                 { $$ = new_ast('+', $2, $3); }
+|     '-' sexp sexp                 { $$ = new_ast('-', $2, $3); }
+|     '*' sexp sexp                 { $$ = new_ast('*', $2, $3); }
+|     '/' sexp sexp                 { $$ = new_ast('/', $2, $3); }
+|     '&' sexp sexp                 { $$ = new_ast('&', $2, $3); }
+|     '|' sexp sexp                 { $$ = new_ast('|', $2, $3); }
+|      PI                           { $$ = new_floatval(3.14159); }
+|      FLOAT                        { $$ = new_floatval($1); }
+|      INT                          { $$ = new_intval($1); }
+|      BOOLEAN                      { $$ = new_boolval($1); }
+|      '(' '-' sexp ')'             { $$ = new_ast('M', $3, NULL); }
+|      '(' sexp ')'                 { $$ = $2; }
+|      '(' BFUNC sexp ')'           { $$ = new_bif($2, $3, NULL); }
+|      '(' BFUNC sexp sexp ')'      { $$ = new_bif($2, $3, $4); }
 |      '(' BFUNC sexp sexp sexp ')' { $$ = new_tribif($2, $3, $4, $5); }
-|    NAME            { $$ = new_ref($1); }
-|    '[' list ']' { $$ = new_list($2); }
+|      NAME                         { $$ = new_ref($1); }
+|      '[' list ']'                 { $$ = new_list($2); }
 ;
 
  /* list (of the form: [a, b, c]) */
-list: { $$ = NULL; }
+list: { $$ = NULL; } /* allow for empty list, ie: [] */
 | sexp list { $$ = new_list_element($1, $2); }
 ;
 
 
  /* yalllist, top level */ 
-yalllist: /* nothing */
+yalllist: /* empty */
 | yalllist sexp EOL {
 
   evaltype e = eval($2);

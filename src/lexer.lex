@@ -1,5 +1,5 @@
 /* lexer.lex
-   A lexical analyzer (tokenizer) for YALL
+   A lexical analyzer for YALL
    Seth Hoenig 2011 (seth.a.hoenig@gmail.com)
 */
 
@@ -35,7 +35,6 @@ FEXP  ([Ee][-+]?[0-9]+)
 ")"  { return yytext[0]; }
 
   /* comparison ops, (all use CMP token) */
-
 ">"  { yylval.tfunc = T_greater_than; return CMP; }
 "<"  { yylval.tfunc = T_less_than; return CMP; }
 "!=" { yylval.tfunc = T_not_equal; return CMP; }
@@ -44,7 +43,6 @@ FEXP  ([Ee][-+]?[0-9]+)
 "<=" { yylval.tfunc = T_less_than_equal; return CMP; }
 "or" { yylval.bfunc = T_or; return CMP; }
 "and" { yylval.bfunc = T_and; return CMP; }
-
 
 
   /* floating point number */

@@ -17,6 +17,7 @@ call_builtin(AST* bifcall) {
   evaltype eleft;
   evaltype eright;
   evaltype eret;
+  eret.type = '!'; /* make gcc a happy compiler */
 
   switch(bifcall->e.val.b) {
 

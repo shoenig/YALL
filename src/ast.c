@@ -55,7 +55,6 @@ new_bif(char bif, AST* l, AST* r) {
   ast->e.val.b = bif;
   ast->left = l;
   ast->right = r;
-  ast->aux = NULL;
   return ast;
 }
 
@@ -77,6 +76,17 @@ new_cmp(char cmp, AST* l, AST* r) {
   ast->e.val.t = cmp;
   ast->left = l;
   ast->right = r;
+  return ast;
+}
+
+#include <stdio.h>
+AST*
+new_lf(char lf, AST* listA, AST* listB) {
+  AST* ast = alloc_ast(sizeof(AST));
+  ast->nodetype = 'w';
+  ast->e.val.t = lf;
+  ast->left = listA;
+  ast->right = listB;
   return ast;
 }
 
@@ -111,6 +121,9 @@ new_list_element(AST* e, AST* next) {
 AST*
 alloc_ast(uint64 size) {
   AST* ast = malloc(size);
+  ast->left = NULL;
+  ast->right = NULL;
+  ast->aux = NULL;
   if(!ast)
     crash("Out of Memory building AST");
   return ast;
@@ -166,6 +179,11 @@ eval(AST* tree) {
     eret.val.list = tree->e.val.list;
     break;
   }
+
+  case 'w': /* a built-in list function */
+    eret = call_listfunc(tree);
+    break;
+
   case 'R': {
     Symbol* s;
     /* lookup in the table, if it's not there, crash */
@@ -284,6 +302,10 @@ eval(AST* tree) {
     }
   }
   }
+  if(eret.type == '!')
+    crash("eval did not do something right, tree->nodetype: (%d) %c",
+          tree->nodetype,
+          tree->nodetype);
   return eret;
 }
 
@@ -308,6 +330,7 @@ freeTREE(AST* tree) {
   case '&':
   case '|':
   case 'T': /* truth function */
+  case 'w': /* list function */
     freeTREE(tree->right);
 
     /* fall-through to types with ONE subtree */

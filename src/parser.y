@@ -15,12 +15,13 @@
 %}
 
 %union {
-  AST* ast;     /* abstract syntax tree */
+  AST* ast;   /* abstract syntax tree */
   float64 f;  /* 64 bit floating point */
   int64 i;    /* 64 bit integral */
   bool b;     /* boolean value */
   char bfunc; /* built in func */
   char tfunc; /* boolean func */
+  char lfunc; /* list func */
   char* c;    /* name, reference name */
 }
 
@@ -31,6 +32,7 @@
 %token <c> NAME
 %token <tfunc> CMP
 %token <bfunc> BFUNC
+%token <lfunc> LFUNC
 %token EOL
 %token PI
 
@@ -69,6 +71,7 @@ sexp: CMP sexp sexp                 { $$ = new_cmp($1, $2, $3); }
 |      '(' BFUNC sexp sexp sexp ')' { $$ = new_tribif($2, $3, $4, $5); }
 |      NAME                         { $$ = new_ref($1); }
 |      '[' list ']'                 { $$ = new_list($2); }
+|      '(' LFUNC sexp ')'   { $$ = new_lf($2, $3, NULL); }
 ;
 
  /* list (of the form: [a, b, c]) */

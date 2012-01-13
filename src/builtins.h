@@ -10,5 +10,6 @@
 
 evaltype call_builtin(AST* bifcall);
 evaltype call_boolfunc(AST* boolcall);
+evaltype call_listfunc(AST* listcall);
 
 #endif

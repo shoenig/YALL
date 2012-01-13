@@ -25,11 +25,12 @@ typedef struct {
   union {
     int64 i;
     float64 f;
-    bif b;
-    cmpf t;
     bool bool;
     List* list;
     char* str;
+    bif b; /* todo: rename this */
+    cmpf t; /* and this */
+    listf lfunc; /* and this as well */
   } val;
 } evaltype;
 
@@ -49,6 +50,7 @@ AST* new_intval(int64 i);
 AST* new_boolval(bool b);
 AST* new_bif(char bif, AST* l, AST* r);
 AST* new_tribif(char bif, AST* l, AST* m, AST* r);
+AST* new_lf(char lf, AST* a, AST* b);
 AST* new_cmp(char cmp, AST* l, AST* r);
 AST* new_ref(char* ref);
 AST* new_list(AST* first);

@@ -29,7 +29,7 @@ typedef enum {
 
 /* {in}equalities  */
 typedef enum {
-  T_greater_than = 10,
+  T_greater_than = 30,
   T_less_than,
   T_not_equal,
   T_equal,
@@ -39,5 +39,10 @@ typedef enum {
   T_or
 } cmpf;
 
+/* list functions */
+typedef enum {
+  L_empty = 50,
+  L_len
+} listf;
 
 #endif

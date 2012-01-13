@@ -20,3 +20,21 @@
 [ (1) (+ 1 1) (+ 1 2)] : [1 2 3]
 [(/ 5.0 2.0) (+ 4 (+ 1 2))] : [2.50 7]
 [ [ (sqrt 49) 3] ([(* 2 3)]) ] : [[7.00 3] [6]]
+
+(empty []) : true
+(empty [1]) : false
+(empty [[]]) : false
+(empty ([]) ) : true
+(empty [1 2 3]) : false
+(empty [false]) : false
+(empty [true]) : false
+(empty [2.0 3.0]) : false
+(empty ([3.4 5.6 false true 12 2])) : false
+
+(len []) : 0
+(len [3]) : 1
+(len [4 5 6]) : 3
+(len ([])) : 0
+(len [1.0]) : 1
+(len [ [] ]) : 1
+(len [ [] [] []]) : 3

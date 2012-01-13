@@ -169,6 +169,17 @@ FEXP  ([Ee][-+]?[0-9]+)
   return BFUNC;
 }
 
+  /* Some List Functions */
+"empty" {
+  yylval.lfunc = L_empty;
+  return LFUNC;
+}
+
+"len" {
+  yylval.lfunc = L_len;
+  return LFUNC;
+}
+
   /* names */
 [a-zA-Z][a-zA-Z0-9]* {
   yylval.c = str_dup(yytext);

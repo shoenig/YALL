@@ -1,9 +1,10 @@
 
 CC = gcc
 # debug ccflags
-#CCFLAGS = -std=c99 -O0 -Wall -pedantic -g
+CCFLAGS = -std=c99 -O0 -Wall -pedantic -g
 # prod ccflags
-CCFLAGS = -std=c99 -O2 -Wall -pedantic
+#CCFLAGS = -std=c99 -O2 -Wall -pedantic
+
 
 yall: lex.yy.c parser.tab.c main.c ast.o err.o utilz.o builtins.o symtable.o typedecoder.o list.o stringer.o globals.h
 	${CC} -O2 -o $@ parser.tab.c lex.yy.c ast.o err.o utilz.o builtins.o symtable.o typedecoder.o list.o stringer.o main.c -lfl -lm

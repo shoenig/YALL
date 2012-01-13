@@ -352,3 +352,41 @@ call_boolfunc(AST* bftree) {
 
   return res;
 }
+
+
+evaltype
+call_listfunc(AST* listfunc) {
+  /*  evaltype right;*/
+  evaltype eleft;
+  evaltype eret;
+  eret.type = '!'; /* rid of gcc warnings */
+
+  switch(listfunc->e.val.lfunc) {
+    /* true if list is empty, false otherwise */
+  case L_empty:
+    eleft = eval(listfunc->left);
+    if(!eleft.type == 'L')
+      crash("need LIST in empty, got: %s", type_decode(eleft.type));
+    eret.type = 'Z';
+    eret.val.bool = (eleft.val.list->head) ? false : true;
+    break;
+
+  case L_len:
+    eleft = eval(listfunc->left);
+    if(!eleft.type == 'L')
+      crash("need LIST in size, got: %s", type_decode(eleft.type));
+    eret.type = 'I';
+    int size = 0;
+    AST* elem_ptr = eleft.val.list->head;
+    while(elem_ptr != NULL) {
+      size++;
+      elem_ptr = elem_ptr->right;
+    }
+    eret.val.i = size;
+    break;
+
+  default:
+    crash("invalid list function: %d", listfunc->e.val.lfunc);
+  }
+  return eret;
+}

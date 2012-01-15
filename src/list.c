@@ -7,12 +7,7 @@
 #include "list.h"
 
 List* list_make(ASTP h) {
-  List* l = (List*)malloc(sizeof(List));
+  List* l = malloc(sizeof(List));
   l->head = h;
   return l;
 }
-
-size_t list_len(List* list) {
-  return 10;
-}
-

@@ -79,7 +79,6 @@ new_cmp(char cmp, AST* l, AST* r) {
   return ast;
 }
 
-#include <stdio.h>
 AST*
 new_lf(char lf, AST* listA, AST* listB) {
   AST* ast = alloc_ast(sizeof(AST));
@@ -103,6 +102,9 @@ new_list(AST* e1) {
   AST* ast = alloc_ast(sizeof(AST));
   ast->nodetype = 'L';
   ast->e.val.list = list_make(e1);
+  ast->left = NULL;
+  ast->right = NULL;
+  ast->aux = NULL;
   return ast;
 }
 
@@ -121,6 +123,7 @@ new_list_element(AST* e, AST* next) {
 AST*
 alloc_ast(uint64 size) {
   AST* ast = malloc(size);
+  ast->nodetype = '#'; /* a warning sign */
   ast->left = NULL;
   ast->right = NULL;
   ast->aux = NULL;
@@ -135,6 +138,31 @@ char* get_ref_name(AST* tree) {
   if(tree->nodetype != 'R')
     crash("not a ref type in get_ref_name: %s", type_decode(tree->nodetype));
   return tree->e.val.str;
+}
+
+/* wrap an evaltype in an AST */
+AST*
+ast_wrap(evaltype e) {
+  AST* tmp;
+  switch(e.type) {
+  case 'I':
+    tmp = new_intval(e.val.i);
+    break;
+  case 'F':
+    tmp = new_floatval(e.val.f);
+    break;
+  case 'Z':
+    tmp = new_boolval(e.val.bool);
+    break;
+  case 'L': {
+    tmp = new_list(e.val.list->head);
+    break;
+  }
+  default:
+    tmp = NULL;
+    crash("cannot wrap type: (%d) %c", e.type, e.type);
+  }
+  return tmp;
 }
 
 /* Does type inferenceing.. or something */
@@ -189,7 +217,6 @@ eval(AST* tree) {
     /* lookup in the table, if it's not there, crash */
     /* if it is there, evaluate what's in the table, set e to that */
     s = smt_lookup(tree->e.val.str);
-
     if(!s)
       crash("undefined variable: %s", tree->e.val.str);
     eret = eval(s->ast);
@@ -231,21 +258,7 @@ eval(AST* tree) {
             type_decode(eright.type), type_decode(s->ast->nodetype));
 
     /* need an ast wrapper */
-    AST* tmp;
-    switch(eright.type) {
-    case 'I':
-      tmp = new_intval(eright.val.i);
-      break;
-    case 'F':
-      tmp = new_floatval(eright.val.f);
-      break;
-    case 'Z':
-      tmp = new_boolval(eright.val.bool);
-      break;
-    default:
-      tmp = NULL;
-      crash("cannot wrap type: (%d) %c", eright.type, eright.type);
-    }
+    AST* tmp = ast_wrap(eright);
     smt_put(s->name, tmp);
     eret.type = eright.type;
     eret = eright;

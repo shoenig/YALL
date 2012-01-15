@@ -24,6 +24,7 @@ typedef enum {
   B_defint,
   B_deffloat,
   B_defbool,
+  B_deflist,
   B_if
 } bif;
 
@@ -42,7 +43,11 @@ typedef enum {
 /* list functions */
 typedef enum {
   L_empty = 50,
-  L_len
+  L_len,
+  L_peek,
+  L_copy,
+  L_pop,
+  L_push
 } listf;
 
 #endif

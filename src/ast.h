@@ -62,6 +62,9 @@ AST* alloc_ast(uint64 size);
 /* returns refname of a 'R' type (without eval-ing) */
 char* get_ref_name(AST*);
 
+/* wrap an evaltype in an AST */
+AST* ast_wrap(evaltype);
+
 /* recursively evaluate an AST tree */
 evaltype eval(AST*);
 

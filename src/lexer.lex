@@ -164,6 +164,11 @@ FEXP  ([Ee][-+]?[0-9]+)
   return BFUNC;
 }
 
+"deflist" {
+  yylval.bfunc = B_deflist;
+  return BFUNC;
+}
+
 "if" {
   yylval.bfunc = B_if;
   return BFUNC;
@@ -177,6 +182,26 @@ FEXP  ([Ee][-+]?[0-9]+)
 
 "len" {
   yylval.lfunc = L_len;
+  return LFUNC;
+}
+
+"peek" {
+  yylval.lfunc = L_peek;
+  return LFUNC;
+}
+
+"copy" {
+  yylval.lfunc = L_copy;
+  return LFUNC;
+}
+
+"pop" {
+  yylval.lfunc = L_pop;
+  return LFUNC;
+}
+
+"push" {
+  yylval.lfunc = L_push;
   return LFUNC;
 }
 

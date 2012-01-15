@@ -10,7 +10,6 @@ typedef struct ast_ *ASTP; /* forward declare or something */
 
 /* it's a linked list of list nodes  */
 typedef struct {
-  int size;
   ASTP head;
 } List;
 

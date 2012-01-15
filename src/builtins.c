@@ -42,7 +42,8 @@ call_builtin(AST* bifcall) {
     if(eleft.type == 'Z')
       eret.val.bool = !eleft.val.bool;
     else
-      crash("need BOOLEAN in logical negation, got: %s", type_decode(eleft.type));
+      crash("need BOOLEAN in logical negation, got: %s",
+            type_decode(eleft.type));
     break;
   }
 
@@ -150,7 +151,8 @@ call_builtin(AST* bifcall) {
   case B_float: {
     eleft = eval(bifcall->left);
     if(eleft.type != 'I' && eleft.type != 'F')
-      crash("need INT or FLOAT in float conversion, got: %s", type_decode(eleft.type));
+      crash("need INT or FLOAT in float conversion, got: %s",
+            type_decode(eleft.type));
     else {
       /* must be I or F, if it's F, no need to do anything */
       eret.type = 'F';
@@ -166,7 +168,8 @@ call_builtin(AST* bifcall) {
   case B_int: {
     eleft = eval(bifcall->left);
     if(eleft.type != 'I' && eleft.type != 'F')
-      crash("need INT or FLOAT in int conversion, got: %s", type_decode(eleft.type));
+      crash("need INT or FLOAT in int conversion, got: %s",
+            type_decode(eleft.type));
     else {
       /* must be I or F, if I, no need to do anything */
       eret.type = 'I';
@@ -207,7 +210,7 @@ call_builtin(AST* bifcall) {
     eright = eval(bifcall->right);
     if(eright.type != 'I')
       crash("need INT in defint, got: %s", type_decode(eright.type));
-    smt_put(get_ref_name(bifcall->left) , new_intval(eright.val.i)); /* don't eval lhs */
+    smt_put(get_ref_name(bifcall->left) , new_intval(eright.val.i));
     eret.type = 'I';
     eret.val.i = eright.val.i;
     break;
@@ -220,7 +223,7 @@ call_builtin(AST* bifcall) {
     eright = eval(bifcall->right);
     if(eright.type != 'F')
       crash("need FLOAT in deffloat, got: %s", type_decode(eright.type));
-    smt_put(get_ref_name(bifcall->left), new_floatval(eright.val.f)); /* no eval lhs */
+    smt_put(get_ref_name(bifcall->left), new_floatval(eright.val.f));
     eret.type = 'F';
     eret.val.f = eright.val.f;
     break;
@@ -233,9 +236,22 @@ call_builtin(AST* bifcall) {
     eright = eval(bifcall->right);
     if(eright.type != 'Z')
       crash("need BOOLEAN in defbool, got: %s", type_decode(eright.type));
-    smt_put(get_ref_name(bifcall->left), new_boolval(eright.val.bool)); /* no eval lhs */
+    smt_put(get_ref_name(bifcall->left), new_boolval(eright.val.bool));
     eret.type = 'Z';
     eret.val.bool = eright.val.bool;
+    break;
+  }
+
+    /* define a list */
+  case B_deflist: {
+    if(bifcall->right == NULL)
+      crash("need expression in deflist");
+    eright = eval(bifcall->right);
+    if(eright.type != 'L')
+      crash("need LIST in deflist, got: %s", type_decode(eright.type));
+    smt_put(get_ref_name(bifcall->left), new_list(eright.val.list->head));
+    eret.type = 'L';
+    eret.val.list = eright.val.list;
     break;
   }
 
@@ -245,13 +261,14 @@ call_builtin(AST* bifcall) {
       crash("no contents in if\n");
     eleft = eval(bifcall->left); /* the boolean conditional */
     if(eleft.type != 'Z')
-      crash("need BOOLEAN in if conditional, got: %s", type_decode(eleft.type));
+      crash("need BOOLEAN in if conditional, got: %s",
+            type_decode(eleft.type));
     if(eleft.val.bool) { /* execute right (the true condition) */
       eret = eval(bifcall->right);
     } else {
       if(bifcall->aux != NULL) { /* the else branch */
         eret = eval(bifcall->aux);
-      } else { /* condition was not true and there was no else, evalute to false for now */
+      } else { /* condition was not true and there was no else, false*/
         eret.type = 'Z';
         eret.val.bool = false;
       }
@@ -305,7 +322,9 @@ call_boolfunc(AST* bftree) {
     else if(l.type=='F' && r.type=='F')
       res.val.bool = (l.val.f > r.val.f);
     else
-      crash("type conflict in > : %s, %s", type_decode(l.type), type_decode(r.type));
+      crash("type conflict in > : %s, %s",
+            type_decode(l.type),
+            type_decode(r.type));
     break;
   case T_less_than:
     if(l.type=='I' && r.type=='I')
@@ -313,7 +332,9 @@ call_boolfunc(AST* bftree) {
     else if(l.type=='F' && r.type=='F')
       res.val.bool = (l.val.f < r.val.f);
     else
-      crash("type conflict in < : %s, %s", type_decode(l.type), type_decode(r.type));
+      crash("type conflict in < : %s, %s",
+            type_decode(l.type),
+            type_decode(r.type));
     break;
   case T_greater_than_equal:
     if(l.type=='I' && r.type=='I')
@@ -321,7 +342,9 @@ call_boolfunc(AST* bftree) {
     else if(l.type=='F' && r.type=='F')
       res.val.bool = (l.val.f >= r.val.f);
     else
-      crash("type conflict in >= : %s, %s", type_decode(l.type), type_decode(r.type));
+      crash("type conflict in >= : %s, %s",
+            type_decode(l.type),
+            type_decode(r.type));
     break;
   case T_less_than_equal:
     if(l.type=='I' && r.type=='I')
@@ -329,7 +352,9 @@ call_boolfunc(AST* bftree) {
     else if(l.type=='F' && r.type=='F')
       res.val.bool = (l.val.f <= r.val.f);
     else
-      crash("type conflict in <= : %s, %s", type_decode(l.type), type_decode(r.type));
+      crash("type conflict in <= : %s, %s",
+            type_decode(l.type),
+            type_decode(r.type));
     break;
   case T_or:
     if(l.type=='Z' && r.type=='Z')
@@ -353,6 +378,56 @@ call_boolfunc(AST* bftree) {
   return res;
 }
 
+AST*
+_wrap_evaltype_as_element(evaltype e) {
+  AST* inner = ast_wrap(e);
+  AST* elem = malloc(sizeof(AST));
+  elem->nodetype = 'E';
+  elem->left = inner;
+  /* elem->right gets set later (to next element) */
+  return elem;
+}
+
+AST*
+_dup_ast(AST* orig_ast) {
+  if(!orig_ast)
+    return NULL;
+  AST* new = malloc(sizeof(AST));
+  new->nodetype = orig_ast->nodetype;
+  new->e = orig_ast->e;
+  new->left = _dup_ast(orig_ast->left);
+  new->aux = _dup_ast(orig_ast->aux);
+  new->right = _dup_ast(orig_ast->right);
+  return new;
+}
+
+AST*
+_list_dup_element(AST* orig_elm) {
+  if(orig_elm) {
+    if(orig_elm->nodetype != 'E') {
+      crash("cannot duplicate non list element (%d) %c",
+            orig_elm->nodetype,
+            orig_elm->nodetype);
+    }
+    AST* new = malloc(sizeof(AST));
+    new->nodetype = 'E';
+    new->e = orig_elm->e;
+    new->left = _dup_ast(orig_elm->left);
+    new->aux = _dup_ast(orig_elm->right);
+    new->right = _list_dup_element(orig_elm->right);
+    return new;
+  } else
+    return NULL;
+}
+
+evaltype
+_list_copy(List* orig) {
+  evaltype ret;
+  ret.type = 'L';
+  ret.val.list = malloc(sizeof(List));
+  ret.val.list->head = _list_dup_element(orig->head); /* kick off recursion */
+  return ret;
+}
 
 evaltype
 call_listfunc(AST* listfunc) {
@@ -363,17 +438,18 @@ call_listfunc(AST* listfunc) {
 
   switch(listfunc->e.val.lfunc) {
     /* true if list is empty, false otherwise */
-  case L_empty:
+  case L_empty: {
     eleft = eval(listfunc->left);
     if(!eleft.type == 'L')
       crash("need LIST in empty, got: %s", type_decode(eleft.type));
     eret.type = 'Z';
     eret.val.bool = (eleft.val.list->head) ? false : true;
     break;
+  }
 
-  case L_len:
+  case L_len: {
     eleft = eval(listfunc->left);
-    if(!eleft.type == 'L')
+    if(eleft.type != 'L')
       crash("need LIST in size, got: %s", type_decode(eleft.type));
     eret.type = 'I';
     int size = 0;
@@ -384,6 +460,54 @@ call_listfunc(AST* listfunc) {
     }
     eret.val.i = size;
     break;
+  }
+
+  case L_peek: {
+    eleft = eval(listfunc->left);
+    if(eleft.type != 'L')
+      crash("need LIST in peek, got: %s", type_decode(eleft.type));
+    if(!eleft.val.list->head)
+      crash("cannot peek empty list");
+    eret = eval(eleft.val.list->head->left);
+    break;
+  }
+
+  case L_copy: {
+    eleft = eval(listfunc->left);
+    if(eleft.type != 'L')
+      crash("need LIST in copy, got: %s", type_decode(eleft.type));
+    eret = _list_copy(eleft.val.list);
+    break;
+  }
+
+  case L_pop: {
+    eleft = eval(listfunc->left);
+    if(eleft.type != 'L')
+      crash("need LIST in pop, got: %s", type_decode(eleft.type));
+    eret = _list_copy(eleft.val.list);
+    if(!eret.val.list->head)
+      crash("cannot pop empty LIST");
+    else
+      eret.val.list->head = eret.val.list->head->right;
+    break;
+  }
+
+  case L_push: {
+    evaltype eright; /* r is list, l is value to push */
+    eright = eval(listfunc->right);
+    if(eright.type != 'L')
+      crash("need LIST in push, got: %s", type_decode(eright.type));
+    eret = _list_copy(eright.val.list);
+    if(eret.val.list->head == NULL) {
+      eret.val.list->head = _wrap_evaltype_as_element(eval(listfunc->left));
+      eret.val.list->head->right = NULL;
+    } else {
+      AST* nhead = _wrap_evaltype_as_element(eval(listfunc->left));
+      nhead->right = eret.val.list->head;
+      eret.val.list->head = nhead;
+    }
+    break;
+  }
 
   default:
     crash("invalid list function: %d", listfunc->e.val.lfunc);

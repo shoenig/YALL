@@ -38,3 +38,66 @@
 (len [1.0]) : 1
 (len [ [] ]) : 1
 (len [ [] [] []]) : 3
+
+(deflist l0 []) : []
+l0 : []
+(l0) : []
+(len l0) : 0
+(empty l0) : true
+
+(deflist l1 [3]) : [3]
+l1 : [3]
+(l1) : [3]
+(len l1) : 1
+(empty l1) : false
+
+(deflist l5 [1 2.0 3 4.0 false]) : [1 2.00 3 4.00 false]
+l5 : [1 2.00 3 4.00 false]
+(len l5) : 5
+(empty l5) : false
+
+(deflist hmm [[]]) : [[]]
+hmm : [[]]
+(len hmm) : 1
+(empty hmm) : false
+
+(deflist haha [1 2 [3 4] [5 [6 7]]] ) : [1 2 [3 4] [5 [6 7]]]
+haha : [1 2 [3 4] [5 [6 7]]]
+(len haha) : 4
+(empty haha) : false
+
+(copy [1 2 3]) : [1 2 3]
+(copy hmm) : [[]]
+(deflist boo (copy hmm)) : [[]]
+
+(deflist x [3 4 5 6]) : [3 4 5 6]
+(deflist y (copy x)) : [3 4 5 6]
+(pop x) : [4 5 6]
+x : [3 4 5 6]
+y : [3 4 5 6]
+(= x (pop x)) : [4 5 6]
+x : [4 5 6]
+y : [3 4 5 6]
+
+(push 1 []) : [1]
+(push 3 [1 2]) : [3 1 2]
+(push 3.3 [false true false]) : [3.30 false true false]
+(deflist happiness [7 7 7]) : [7 7 7]
+(push 3 happiness) : [3 7 7 7]
+(happiness) : [7 7 7]
+(= happiness (push 8 happiness)) : [8 7 7 7]
+(happiness) : [8 7 7 7]
+
+(deflist sadness []) : []
+(= sadness (push 2 sadness)) : [2]
+(= sadness (push 3 sadness)) : [3 2]
+(= sadness (push 4 sadness)) : [4 3 2]
+(len sadness) : 3
+(= sadness (pop sadness)) : [3 2]
+(len sadness) : 2
+(= sadness (pop sadness)) : [2]
+(len sadness) : 1
+(empty sadness) : false
+(= sadness (pop sadness)) : []
+(len sadness) : 0
+(empty sadness) : true

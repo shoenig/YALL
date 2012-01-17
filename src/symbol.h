@@ -8,10 +8,10 @@
 
 #include "ast.h"
 
-typedef struct {
+typedef struct sym_ {
   char* name;
   AST* ast;
-  /* something about symlist */
+  struct sym_* next;
 } Symbol;
 
 #endif

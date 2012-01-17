@@ -4,104 +4,114 @@
 */
 
 #include <string.h>
+#include <stdlib.h>
 #include "err.h"
 #include "symtable.h"
 
-/* basic hash-a-string */
-/* not needed until proper implementation is used
-uint64 symhash(char* symname) {
-  uint64 hash = 0;
-  uint64 c;
-  while((c = *symname++))
-    hash = hash*9 ^ c;
-  return hash;
-}
-*/
-
-/* Crappy Implementation */
-void smt_init() {
+/* clear everything */
+void
+smt_init() {
   size_t idx = 0;
   while(idx < TABLESIZE) {
-    table[idx].name = NULL;
-    table[idx].ast = NULL;
+    table[idx] = NULL;
     idx++;
   }
 }
 
 /* returns pointer to the Symbol, NULL if ref is not in the table */
-Symbol* smt_lookup(char* name) {
+Symbol*
+smt_lookup(char* name) {
   size_t idx = 0;
   while(idx < TABLESIZE) {
-    if(table[idx].name && strcmp(name, table[idx].name) == 0)
-      return &table[idx];
+    if(table[idx] && strcmp(name, table[idx]->name) == 0) {
+      Symbol* sym = table[idx];
+      while(sym->next)
+        sym = sym->next;
+      return sym;
+    }
     idx++;
   }
   return NULL; /* not found */
 }
 
-void smt_put(char* name, AST* ast) {
+void
+smt_create_symbol(char* name, AST* ast) {
   size_t idx = 0;
-  if(smt_lookup(name) == NULL) { /* new entry */
-    while(idx < TABLESIZE) {
-      if(table[idx].name == NULL) {
-        table[idx].name = name;
-        table[idx].ast = ast;
-        return;
-      }
-      idx++;
+  while(idx < TABLESIZE) {
+    if(table[idx] == NULL) {
+      table[idx] = malloc(sizeof(AST));
+      table[idx]->name = name;
+      table[idx]->ast = ast;
+      table[idx]->next = NULL;
+      return;
     }
-    crash("Out of symbol table space");
-  } else { /* overwrite entry */
-    while(idx < TABLESIZE) {
-      if(table[idx].name && strcmp(name, table[idx].name) == 0) {
-        table[idx].ast = ast;
-        return;
-      }
-      idx++;
-    }
+    idx++;
+  }
+  crash("Out of symbol table space");
+}
+
+/* APPEND to the chain */
+void
+smt_with_entry(char* name, AST* ast) {
+  Symbol* sym = smt_lookup(name);
+  if(!sym)
+    smt_create_symbol(name, ast);
+  else {
+    sym->next = malloc(sizeof(AST));
+    sym->next->name = name;
+    sym->next->ast = ast;
   }
 }
 
-void smt_del(char* name) {
+/* REMOVE the end of the chain */
+void
+smt_with_exit(char* name) {
+  /* TODO, implement doubly linked list so i can just fiddle
+     with back pointers instead of re-implementing(ish) smt_lookup */
   size_t idx = 0;
   while(idx < TABLESIZE) {
-    if(table[idx].name && strcmp(name, table[idx].name) == 0) {
-      table[idx].name = NULL;
-      table[idx].ast = NULL;
+    if(table[idx] && strcmp(name, table[idx]->name) == 0) {
+      Symbol* current  = table[idx];
+      Symbol* trailer = table[idx];
+      while(current->next != NULL) {
+        trailer = current;
+        current = current->next;
+      }
+      if(current == trailer) { /* top level */
+        /* TODO free stuff */
+        table[idx] = NULL;
+        return;
+      }
+      else {
+        /* TODO free(current */
+        trailer->next = NULL;
+        return;
+      }
+    }
+    idx++;
+  }
+  crash("cannot delete non-existent symbol: %s", name);
+}
+
+/* UPDATE last element in chain */
+void
+smt_put(char* name, AST* ast) {
+  Symbol* sym = smt_lookup(name);
+  if(!sym)
+    smt_create_symbol(name, ast);
+  else
+    sym->ast = ast;
+}
+
+  /* REMOVE ENTIRE chain */
+void
+smt_del(char* name) {
+  size_t idx = 0;
+  while(idx < TABLESIZE) {
+    if(table[idx] && strcmp(name, table[idx]->name) == 0) {
+      table[idx]->name = NULL;
+      table[idx]->ast = NULL;
     }
     idx++;
   }
 }
-
-/* Proper Implementation (todo: finish)
-void put(char* symname, AST* ast) {
-  Symbol* s = lookup(symname);
-  if(s) { // already in table, just update it 
-    s->thing = ast;
-  } else { // new entry 
-    s = malloc(sizeof(Symbol));
-    if(!s)
-      crash("Out of Space");
-    
-  }
-}
-
-Symbol* lookup(char* symname) {
-  Symbol* sp = &table[symhash(symname) % NHASH];
-  int scount = NHASH; // how many syms we've looked at 
-  while(--scount >= 0) {
-    if(sp->name && ((!!strcmp(sp->name, symname))==0) )
-      return sp;
-
-    if(!sp->name) { // not in table 
-      return NULL;
-    }
-
-    if(++sp >= table+NHASH) // loop around 
-      sp = table;
-    crash("Symbol Table Overflow");
-  }
-  return NULL; // never gets here 
-}
-
-*/

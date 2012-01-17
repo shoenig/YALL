@@ -275,6 +275,48 @@ call_builtin(AST* bifcall) {
     }
     break;
   }
+    /* with statement */
+  case B_with: {
+    if((!bifcall->left) || (bifcall->left->nodetype != 'L'))
+      crash("need LIST in lhs of with statement");
+    if((!bifcall->right))
+      crash("need expression in with statement");
+
+    /* need to setup symbol table */
+    AST* outerlist_ast = (bifcall->left);
+    evaltype outerlistetype = eval(outerlist_ast);
+    List* outerlist = outerlistetype.val.list;
+
+    AST* innerlist_ast = outerlist->head;
+    while(innerlist_ast) {
+      List* innerlist = innerlist_ast->left->e.val.list;
+      if(!innerlist->head)
+        goto no_args; /* please forgive me */
+      char* lhs =    get_ref_name(innerlist->head->left);
+      AST* rhs = innerlist->head->right->left;
+      smt_with_entry(lhs, rhs);
+      innerlist_ast = innerlist_ast->right;
+    }
+
+    eret = eval(bifcall->right);
+
+    /* need to tear down symbol table */
+    innerlist_ast = outerlist->head;
+    while(innerlist_ast) {
+      List* innerlist = innerlist_ast->left->e.val.list;
+      char* lhs = get_ref_name(innerlist->head->left);
+      smt_with_exit(lhs);
+      innerlist_ast = innerlist_ast->right;
+    }
+    goto finished;
+
+    no_args:
+    eret = eval(bifcall->right);
+
+    finished:
+
+    break;
+  }
 
   default:
     crash("invalid built-in function: %d", bifcall->e.val.b);

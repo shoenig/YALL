@@ -25,7 +25,8 @@ typedef enum {
   B_deffloat,
   B_defbool,
   B_deflist,
-  B_if
+  B_if,
+  B_with
 } bif;
 
 /* {in}equalities  */

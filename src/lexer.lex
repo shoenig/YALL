@@ -205,6 +205,12 @@ FEXP  ([Ee][-+]?[0-9]+)
   return LFUNC;
 }
 
+  /* scoping */
+"with" {
+  yylval.bfunc = B_with;
+  return BFUNC;
+}
+
   /* names */
 [a-zA-Z][a-zA-Z0-9]* {
   yylval.c = str_dup(yytext);

@@ -1,0 +1,22 @@
+(with [[]] 1) : 1
+(with [[]] (+ 2 2)) : 4
+(with [[x 1]] 2) : 2
+(with [[x 3]] x) : 3
+(with [[x 4]] (+ x 1)) : 5
+(with [[x 3]] (* x x)) : 9
+(with [[x 2] [y 3]] (* x y)) : 6
+(with [[p false] [q true]] (or p q)) : true
+(with [[p false] [q true]] (and p q)) : false
+(defint x 1) : 1
+x : 1
+(with [[x 3]] x) : 3
+x : 1
+(deffloat f 7.0) : 7.00
+(with [[f 2.0] [x 5]] (pow (int f) x)) : 32
+(= f (with [[f 3.0]] (+ 1.0 f))) : 4.00
+
+(with [[x 2]] (with [[x 3]] x)) : 3
+x : 1
+(with [[x 2]] (with [[x 4]] (with [[x 8]] (with [[x 5]] x)))) : 5
+(with [[x 2]] (+ 1 (with [[x 4]] x))) : 5
+x : 1

@@ -7,6 +7,9 @@
 #ifndef YALL_TYPEDECODER_H
 #define YALL_TYPEDECODER_H
 
-char* type_decode(char);
+#include "builtintypes.h"
+
+const char* etdec(EVALTYPE);
+const char* astdec(ASTTYPE);
 
 #endif

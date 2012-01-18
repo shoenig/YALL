@@ -19,9 +19,9 @@ void yyerror(char* s, ...);
 /* evaltype is what every sexp eventually gets evaluated to. it contains
    info about itself with evaltype.type, which lets you know which value
    from the evaltype.val union you should be looking at. for example, if
-   evaltype.type == 'F', then you want evaltype.val.f */
+   evaltype.type == ET_FLOAT, then you want evaltype.val.f */
 typedef struct {
-  char type;
+  EVALTYPE type;
   union {
     int64 i;
     float64 f;
@@ -36,7 +36,7 @@ typedef struct {
 
 /* AST */
 typedef struct ast_ {
-  char nodetype;
+  ASTTYPE nodetype;
   evaltype e;
   struct ast_* left;
   struct ast_* right;
@@ -44,14 +44,14 @@ typedef struct ast_ {
 } AST;
 
 
-AST* new_ast(char ntype, AST* l, AST* r);
+AST* new_ast(int type, AST* l, AST* r);
 AST* new_floatval(float64 f);
 AST* new_intval(int64 i);
 AST* new_boolval(bool b);
-AST* new_bif(char bif, AST* l, AST* r);
-AST* new_tribif(char bif, AST* l, AST* m, AST* r);
-AST* new_lf(char lf, AST* a, AST* b);
-AST* new_cmp(char cmp, AST* l, AST* r);
+AST* new_bif(bif func, AST* l, AST* r);
+AST* new_tribif(bif func, AST* l, AST* m, AST* r);
+AST* new_listfunc(listf func, AST* a, AST* b);
+AST* new_cmp(cmpf func, AST* l, AST* r);
 AST* new_ref(char* ref);
 AST* new_list(AST* first);
 AST* new_list_element(AST* this, AST* next);
@@ -59,7 +59,7 @@ AST* new_list_element(AST* this, AST* next);
 /* allocate an AST given a size */
 AST* alloc_ast(uint64 size);
 
-/* returns refname of a 'R' type (without eval-ing) */
+/* returns refname of a AST_REFERENCE type (without eval-ing) */
 char* get_ref_name(AST*);
 
 /* wrap an evaltype in an AST */

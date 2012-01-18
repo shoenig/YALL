@@ -71,8 +71,8 @@ sexp: CMP sexp sexp                 { $$ = new_cmp($1, $2, $3); }
 |      '(' BFUNC sexp sexp sexp ')' { $$ = new_tribif($2, $3, $4, $5); }
 |      NAME                         { $$ = new_ref($1); }
 |      '[' list ']'                 { $$ = new_list($2); }
-|      '(' LFUNC sexp ')'           { $$ = new_lf($2, $3, NULL); }
-|      '(' LFUNC sexp sexp ')'      { $$ = new_lf($2, $3, $4); }
+|      '(' LFUNC sexp ')'           { $$ = new_listfunc($2, $3, NULL); }
+|      '(' LFUNC sexp sexp ')'      { $$ = new_listfunc($2, $3, $4); }
 ;
 
  /* list (of the form: [a, b, c]) */

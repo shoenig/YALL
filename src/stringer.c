@@ -12,11 +12,11 @@
 char*
 str_evaltype(evaltype e) {
   switch(e.type) {
-  case 'I': return str_int(e.val.i); break;
-  case 'F': return str_float(e.val.f); break;
-  case 'Z': return str_bool(e.val.bool); break;
-  case 'R': return str_ref(e.val.str); break;
-  case 'L': return str_list(e.val.list); break;
+  case ET_INT: return str_int(e.val.i); break;
+  case ET_FLOAT: return str_float(e.val.f); break;
+  case ET_BOOL: return str_bool(e.val.bool); break;
+  case ET_REFERENCE: return str_ref(e.val.str); break;
+  case ET_LIST: return str_list(e.val.list); break;
   default: {
     char* tmp = malloc(sizeof(char) * 128);
     sprintf(tmp, "strERROR (%d)", e.type);

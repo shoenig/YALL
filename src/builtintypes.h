@@ -7,6 +7,38 @@
 #ifndef YALL_BUILTIN_TYPES_H
 #define YALL_BUILTIN_TYPES_H
 
+/* evaluatable types */
+typedef enum {
+  ET_INVALID = 70, // !
+  ET_INT,         // I
+  ET_FLOAT,      // F
+  ET_BOOL,       // Z
+  ET_LIST,       // L
+  ET_REFERENCE   // R
+} EVALTYPE;
+
+/* ast types */
+typedef enum {
+  AST_INVALID = 0,   // !
+  AST_INT,           // I
+  AST_FLOAT,         // F
+  AST_MINUS,         // M
+  AST_BOOL,          // Z
+  AST_LIST,          // L
+  AST_LIST_ELEMENT,  // E
+  AST_REFERENCE,     // R
+  AST_LIST_FUNC,     // w
+  AST_BUILTIN_FUNC,  // B
+  AST_BOOLEAN_FUNC,  // T
+  AST_AMPER,
+  AST_PIPE,
+  AST_EQ,
+  AST_PLUS,
+  AST_SUB,
+  AST_MULT,
+  AST_DIV
+} ASTTYPE;
+
 /* built-in functions */
 typedef enum {
   B_sqrt = 10,

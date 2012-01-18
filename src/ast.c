@@ -2,7 +2,9 @@
    Definitions for AST
    Seth Hoenig 2011 (seth.a.hoenig@gmail.com)
 */
+
 #include <stdlib.h>
+#include "builtintypes.h"
 #include "stdtype.h"
 #include "ast.h"
 #include "err.h"
@@ -14,20 +16,32 @@
 #include "list.h"
 
 AST*
-new_ast(char ntype, AST* l, AST* r) {
+new_ast(int ntype, AST* l, AST* r) {
   AST* ast = alloc_ast(sizeof(AST));
-  ast->nodetype = ntype;
+  ASTTYPE atype;
+  switch(ntype) {
+  case '=': atype = AST_EQ; break;
+  case '+': atype = AST_PLUS; break;
+  case '-': atype = AST_SUB; break;
+  case '*': atype = AST_MULT; break;
+  case '/': atype = AST_DIV; break;
+  case '&': atype = AST_AMPER; break;
+  case '|': atype = AST_PIPE; break;
+  case 'M': atype = AST_MINUS; break;
+  default: atype = AST_INVALID;
+  }
+  ast->nodetype = atype;
   ast->left = l;
   ast->right = r;
-  ast->e.type = ntype;
+  ast->e.type = atype;
   return ast;
 }
 
 AST*
 new_floatval(float64 f) {
   AST* fast = alloc_ast(sizeof(AST));
-  fast->nodetype = 'F';
-  fast->e.type = 'F';
+  fast->nodetype = AST_FLOAT;
+  fast->e.type = ET_FLOAT;
   fast->e.val.f = f;
   return fast;
 }
@@ -35,8 +49,8 @@ new_floatval(float64 f) {
 AST*
 new_intval(int64 i) {
   AST* iast = alloc_ast(sizeof(AST));
-  iast->nodetype = 'I';
-  iast->e.type = 'I';
+  iast->nodetype = AST_INT;
+  iast->e.type = ET_INT;
   iast->e.val.i = i;
   return iast;
 }
@@ -44,14 +58,25 @@ new_intval(int64 i) {
 AST*
 new_boolval(bool b) {
   AST* ast = alloc_ast(sizeof(AST));
-  ast->nodetype = 'Z';
+  ast->nodetype = AST_BOOL;
+  ast->e.type = ET_BOOL;
   ast->e.val.bool = b;
   return ast;
 }
+
 AST*
-new_bif(char bif, AST* l, AST* r) {
+new_ref(char* refname) {
   AST* ast = alloc_ast(sizeof(AST));
-  ast->nodetype = 'B';
+  ast->nodetype = AST_REFERENCE;
+  ast->e.type = ET_REFERENCE;
+  ast->e.val.str = refname;
+  return ast;
+}
+
+AST*
+new_bif(bif bif, AST* l, AST* r) {
+  AST* ast = alloc_ast(sizeof(AST));
+  ast->nodetype = AST_BUILTIN_FUNC;
   ast->e.val.b = bif;
   ast->left = l;
   ast->right = r;
@@ -59,9 +84,9 @@ new_bif(char bif, AST* l, AST* r) {
 }
 
 AST*
-new_tribif(char bif, AST* l, AST* r, AST* aux) {
+new_tribif(bif bif, AST* l, AST* r, AST* aux) {
   AST* ast = alloc_ast(sizeof(AST));
-  ast->nodetype = 'B';
+  ast->nodetype = AST_BUILTIN_FUNC;
   ast->e.val.b = bif;
   ast->left = l;
   ast->right = r;
@@ -70,9 +95,9 @@ new_tribif(char bif, AST* l, AST* r, AST* aux) {
 }
 
 AST*
-new_cmp(char cmp, AST* l, AST* r) {
+new_cmp(cmpf cmp, AST* l, AST* r) {
   AST* ast = alloc_ast(sizeof(AST));
-  ast->nodetype = 'T';
+  ast->nodetype = AST_BOOLEAN_FUNC;
   ast->e.val.t = cmp;
   ast->left = l;
   ast->right = r;
@@ -80,27 +105,20 @@ new_cmp(char cmp, AST* l, AST* r) {
 }
 
 AST*
-new_lf(char lf, AST* listA, AST* listB) {
+new_listfunc(listf lf, AST* listA, AST* listB) {
   AST* ast = alloc_ast(sizeof(AST));
-  ast->nodetype = 'w';
+  ast->nodetype = AST_LIST_FUNC;
   ast->e.val.t = lf;
   ast->left = listA;
   ast->right = listB;
   return ast;
 }
 
-AST*
-new_ref(char* refname) {
-  AST* ast = alloc_ast(sizeof(AST));
-  ast->nodetype = 'R';
-  ast->e.val.str = refname;
-  return ast;
-}
-
 AST* /* a list points to first element */
 new_list(AST* e1) {
   AST* ast = alloc_ast(sizeof(AST));
-  ast->nodetype = 'L';
+  ast->nodetype = AST_LIST;
+  ast->e.type = ET_LIST;
   ast->e.val.list = list_make(e1);
   ast->left = NULL;
   ast->right = NULL;
@@ -111,7 +129,7 @@ new_list(AST* e1) {
 AST* /* each element points to contents and next element */
 new_list_element(AST* e, AST* next) {
   AST* ast = alloc_ast(sizeof(AST));
-  ast->nodetype = 'E';
+  ast->nodetype = AST_LIST_ELEMENT;
   ast->left = e;
   ast->right = next;
   return ast;
@@ -135,8 +153,8 @@ alloc_ast(uint64 size) {
 /* basically assume we have a ref type, which we can't eval because
    the symtable doesn't have anything, we just want the char* name */
 char* get_ref_name(AST* tree) {
-  if(tree->nodetype != 'R')
-    crash("not a ref type in get_ref_name: %s", type_decode(tree->nodetype));
+  if(tree->nodetype != AST_REFERENCE)
+    crash("not a ref type in get_ref_name: %s", astdec(tree->nodetype));
   return tree->e.val.str;
 }
 
@@ -145,16 +163,16 @@ AST*
 ast_wrap(evaltype e) {
   AST* tmp;
   switch(e.type) {
-  case 'I':
+  case ET_INT:
     tmp = new_intval(e.val.i);
     break;
-  case 'F':
+  case ET_FLOAT:
     tmp = new_floatval(e.val.f);
     break;
-  case 'Z':
+  case ET_BOOL:
     tmp = new_boolval(e.val.bool);
     break;
-  case 'L': {
+  case ET_LIST: {
     tmp = new_list(e.val.list->head);
     break;
   }
@@ -174,45 +192,49 @@ eval(AST* tree) {
   evaltype eleft;
   evaltype eright;
   evaltype eret;
-  eret.type = '!'; /* gcc nonsense */
+  eret.type = ET_INVALID; /* gcc nonsense */
 
   if(tree == NULL)
     crash("internal error, null tree in eval");
 
   switch(tree->nodetype) {
-  case 'I': /* int */
-    eret.type = 'I';
+  case AST_INVALID:
+  case AST_LIST_ELEMENT:
+    crash("invalid ast: %s", astdec(tree->nodetype));
+    break;
+  case AST_INT: /* int */
+    eret.type = ET_INT;
     eret.val.i = tree->e.val.i;
     break;
-  case 'F': /* float */
-    eret.type = 'F';
+  case AST_FLOAT: /* float */
+    eret.type = ET_FLOAT;
     eret.val.f = tree->e.val.f;
     break;
-  case 'Z': /* boolean (true/false) */
-    eret.type = 'Z';
+  case AST_BOOL: /* boolean (true/false) */
+    eret.type = ET_BOOL;
     eret.val.bool = tree->e.val.bool;
     break;
-  case 'M': /* int or float */
+  case AST_MINUS: /* int or float */
     eleft = eval(tree->left);
     switch(eleft.type) {
-    case 'I': eret.type = 'I'; eret.val.i = -eleft.val.i; break;
-    case 'F': eret.type = 'F'; eret.val.f = -eleft.val.f; break;
+    case ET_INT: eret.type = ET_INT; eret.val.i = -eleft.val.i; break;
+    case ET_FLOAT: eret.type = ET_FLOAT; eret.val.f = -eleft.val.f; break;
     default:
-      crash("typing error (I,F,M), e: %s", type_decode(tree->e.type));
+      crash("typing error e: %s", astdec(tree->e.type));
     }
     break;
 
-  case 'L': { /* a list */
-    eret.type = 'L';
+  case AST_LIST: { /* a list */
+    eret.type = ET_LIST;
     eret.val.list = tree->e.val.list;
     break;
   }
 
-  case 'w': /* a built-in list function */
+  case AST_LIST_FUNC: /* a built-in list function */
     eret = call_listfunc(tree);
     break;
 
-  case 'R': {
+  case AST_REFERENCE: {
     Symbol* s;
     /* lookup in the table, if it's not there, crash */
     /* if it is there, evaluate what's in the table, set e to that */
@@ -223,39 +245,41 @@ eval(AST* tree) {
     break;
   }
 
-  case 'B':
+  case AST_BUILTIN_FUNC:
     eret = call_builtin(tree);
     break;
 
-  case 'T':
+  case AST_BOOLEAN_FUNC:
     eret = call_boolfunc(tree);
     break;
 
-  case '&':
-  case '|': {
+  case AST_AMPER:
+  case AST_PIPE: {
     eleft = eval(tree->left);
     eright = eval(tree->right);
-    if(eleft.type != 'I' || eright.type != 'I')
+    if(eleft.type != ET_INT || eright.type != ET_INT)
       crash("typing error (&,|): le: %s, re: %s",
-            type_decode(eleft.type), type_decode(eright.type));
-    eret.type = 'I';
-    if(tree->nodetype == '&')
+            etdec(eleft.type), etdec(eright.type));
+    eret.type = ET_INT;
+    if(tree->nodetype == AST_AMPER)
       eret.val.i = eleft.val.i & eright.val.i;
     else
       eret.val.i = eleft.val.i | eright.val.i;
     break;
   }
 
-  case '=': {
+  case AST_EQ: {
     Symbol* s;
     /* don't eval left, just want the name */
     s = smt_lookup(tree->left->e.val.str);
     if(!s)
       crash("cannot assign to undeclared variable: %s", s);
     eright = eval(tree->right);  /* value to be assigned */
-    if(s->ast->nodetype != eright.type)
-      crash("cannot assign type %s to var of type %s",
-            type_decode(eright.type), type_decode(s->ast->nodetype));
+
+    /* TODO: fix this using cassert */
+    /* if(s->ast->nodetype != eright.type) */
+    /*   crash("cannot assign type %s to var of type %s", */
+    /*         etdec(eright.type), astdec(s->ast->nodetype)); */
 
     /* need an ast wrapper */
     AST* tmp = ast_wrap(eright);
@@ -266,56 +290,56 @@ eval(AST* tree) {
   }
 
     /* BINARY FUNCTION cases that involve type specific operations */
-  case '+':
-  case '-':
-  case '*':
-  case '/': { /* compiler needs this {} b/c of nested switch */
+  case AST_PLUS:
+  case AST_SUB:
+  case AST_MULT:
+  case AST_DIV: { /* compiler needs this {} b/c of nested switch */
 
     evaltype eleft = eval(tree->left);
     evaltype eright = eval(tree->right);
 
     if(eleft.type != eright.type)
       crash("typing error (+,-,*,/), le: %s, re: %s",
-            type_decode(eleft.type), type_decode(eright.type));
+            etdec(eleft.type), etdec(eright.type));
 
-    if(eleft.type == 'I')
-      eret.type = 'I';
-    else if(eleft.type == 'F')
-      eret.type = 'F';
+    if(eleft.type == ET_INT)
+      eret.type = ET_INT;
+    else if(eleft.type == ET_FLOAT)
+      eret.type = ET_FLOAT;
 
     switch(tree->nodetype) {
-    case '+':
-      if(eleft.type == 'I')
+    case AST_PLUS:
+      if(eleft.type == ET_INT)
         eret.val.i = eleft.val.i + eright.val.i;
-      else if(eleft.type == 'F')
+      else if(eleft.type == ET_FLOAT)
         eret.val.f = eleft.val.f + eright.val.f;
       break;
-    case '-':
-      if(eleft.type == 'I')
+    case AST_SUB:
+      if(eleft.type == ET_INT)
         eret.val.i = eleft.val.i - eright.val.i;
-      else if(eleft.type == 'F')
+      else if(eleft.type == ET_FLOAT)
         eret.val.f = eleft.val.f - eright.val.f;
       break;
-    case '*':
-      if(eleft.type == 'I')
+    case AST_MULT:
+      if(eleft.type == ET_INT)
         eret.val.i = eleft.val.i * eright.val.i;
-      else if(eleft.type == 'F')
+      else if(eleft.type == ET_FLOAT)
         eret.val.f = eleft.val.f * eright.val.f;
       break;
-    case '/':
-      if(eleft.type == 'I')
+    case AST_DIV:
+      if(eleft.type == ET_INT)
         eret.val.i = eleft.val.i / eright.val.i;
-      else if(eleft.type == 'F')
+      else if(eleft.type == ET_FLOAT)
         eret.val.f = eleft.val.f / eright.val.f;
       break;
 
     default:
       crash("invalid binary built-in function: %s",
-            type_decode(tree->nodetype));
+            astdec(tree->nodetype));
     }
   }
   }
-  if(eret.type == '!')
+  if(eret.type == ET_INVALID)
     crash("eval did not do something right, tree->nodetype: (%d) %c",
           tree->nodetype,
           tree->nodetype);
@@ -330,37 +354,37 @@ freeTREE(AST* tree) {
   switch(tree->nodetype) {
     /* various builtin functions */
     /* types that have THREE subtrees */
-  case 'B':
+  case AST_BUILTIN_FUNC:
     if(tree->aux != NULL)
       freeTREE(tree->aux);
 
     /* fall-through to types that have TWO subtrees */
-  case '=':
-  case '+':
-  case '-':
-  case '*':
-  case '/':
-  case '&':
-  case '|':
-  case 'T': /* truth function */
-  case 'w': /* list function */
+  case AST_EQ:
+  case AST_PLUS:
+  case AST_SUB:
+  case AST_MULT:
+  case AST_DIV:
+  case AST_AMPER:
+  case AST_PIPE:
+  case AST_BOOLEAN_FUNC: /* truth function */
+  case AST_LIST_FUNC: /* list function */
     freeTREE(tree->right);
 
     /* fall-through to types with ONE subtree */
-  case 'M': /* numeric negation */
+  case AST_MINUS: /* numeric negation */
     freeTREE(tree->left);
     break;
     /* fall-through to types with NO subtree */
-  case 'F': /* float */
-  case 'I': /* int */
-  case 'Z': /* boolean */
-  case 'R': /* reference name, maybe we should free e.val.str */
+  case AST_FLOAT: /* float */
+  case AST_INT: /* int */
+  case AST_BOOL: /* boolean */
+  case AST_REFERENCE: /* reference name, maybe we should free e.val.str */
     break;
 
-  case 'L': /* list */
+  case AST_LIST: /* list */
     freeTREE(tree->left); /* go to first element */
     break;
-  case 'E': /* list element */
+  case AST_LIST_ELEMENT: /* list element */
     freeTREE(tree->right); /* go to next element as well */
     freeTREE(tree->left); /* clear this element */
     break;
@@ -368,7 +392,7 @@ freeTREE(AST* tree) {
   default:
     /* you probably added a node type and forgot to add it here */
     crash("internal error in freeing tree, bad node type: (%d) %s ",
-          type_decode(tree->nodetype), type_decode(tree->nodetype));
+          astdec(tree->nodetype), astdec(tree->nodetype));
   }
   /* actually delete this node, (all children have been deleted) */
   free(tree);

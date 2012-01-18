@@ -64,7 +64,7 @@ smt_with_entry(char* name, AST* ast) {
 }
 
 /* REMOVE the end of the chain */
-void
+bool
 smt_with_exit(char* name) {
   /* TODO, implement doubly linked list so i can just fiddle
      with back pointers instead of re-implementing(ish) smt_lookup */
@@ -78,19 +78,20 @@ smt_with_exit(char* name) {
         current = current->next;
       }
       if(current == trailer) { /* top level */
-        /* TODO free stuff */
+        free(table[idx]);
         table[idx] = NULL;
-        return;
+        return true; /* all gone */
       }
       else {
-        /* TODO free(current */
+        free(trailer->next);
         trailer->next = NULL;
-        return;
+        return false; /* at least one remains */
       }
     }
     idx++;
   }
   crash("cannot delete non-existent symbol: %s", name);
+  return false;
 }
 
 /* UPDATE last element in chain */
@@ -106,12 +107,6 @@ smt_put(char* name, AST* ast) {
   /* REMOVE ENTIRE chain */
 void
 smt_del(char* name) {
-  size_t idx = 0;
-  while(idx < TABLESIZE) {
-    if(table[idx] && strcmp(name, table[idx]->name) == 0) {
-      table[idx]->name = NULL;
-      table[idx]->ast = NULL;
-    }
-    idx++;
-  }
+  while(smt_lookup(name))
+    smt_with_exit(name); /* takes care of free-ing */
 }

@@ -55,6 +55,7 @@ AST* new_cmp(cmpf func, AST* l, AST* r);
 AST* new_ref(char* ref);
 AST* new_list(AST* first);
 AST* new_list_element(AST* this, AST* next);
+/*AST* new_call_userfunc(char* funcname, AST* args_list, AST* body);*/
 
 /* allocate an AST given a size */
 AST* alloc_ast(uint64 size);

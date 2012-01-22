@@ -3,6 +3,10 @@
    Seth Hoenig 2011 (seth.a.hoenig@gmail.com)
 */
 
+/* TODO REMOVE THIS */
+#include <stdio.h>
+#include "stringer.h"
+
 #include <stdlib.h>
 #include <math.h>
 #include "ast.h"
@@ -10,6 +14,8 @@
 #include "builtintypes.h"
 #include "err.h"
 #include "symtable.h"
+#include "ufunc.h"
+#include "functable.h"
 #include "typedecoder.h"
 
 evaltype
@@ -314,6 +320,44 @@ call_builtin(AST* bifcall) {
 
     finished:
 
+    break;
+  }
+
+    /* create and store a new user-defined function. need to keep track of the names
+       of the variables. (so that we know how to handle their scope later on) */
+  case B_defufunc: {
+    if(bifcall->left->nodetype != AST_REFERENCE)
+      crash("defining a function requires valid function name");
+    char* fname = get_ref_name(bifcall->left);
+    /* handle args list */
+    /*evaltype listeval = eval(bifcall->right); // CANNOT call eval, b/c vars are dummy refs! */
+    if(bifcall->right->nodetype != AST_LIST)
+      crash("defining a function requires parameter list");
+    List* arglist = bifcall->right->e.val.list; // oh snap, a list with unevaluated elements
+    AST* temp = arglist->head;
+    int argc = 0;
+    while(temp) {
+      AST* content = temp->left;
+      if(content->nodetype != AST_REFERENCE)
+        crash("arglist must contain only references");
+      argc++;
+      temp = temp->right;
+    }
+    char** reflist = malloc(sizeof(char*) * argc);
+    temp = arglist->head;
+    int i = 0;
+    while(temp) {
+      char* ref = get_ref_name(temp->left);
+      reflist[i] = ref;
+      temp = temp->right;
+    }
+
+    AST* fbody = bifcall->aux;
+    UserFunc* uf = new_user_func(fname, argc, reflist, fbody);
+    uft_put(uf);
+
+    eret.type = ET_BOOL;
+    eret.val.bool = false;
     break;
   }
 

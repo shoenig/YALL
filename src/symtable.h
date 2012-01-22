@@ -16,6 +16,7 @@ Symbol* smt_lookup(char* name);
 void smt_with_entry(char* name, AST* ast);
 bool smt_with_exit(char* name);
 void smt_put(char* name, AST* ast);
+
 void smt_del(char* name);
 
 #endif

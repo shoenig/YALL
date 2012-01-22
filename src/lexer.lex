@@ -211,6 +211,12 @@ FEXP  ([Ee][-+]?[0-9]+)
   return BFUNC;
 }
 
+  /* user func */
+"deffunc" {
+  yylval.bfunc = B_defufunc;
+  return BFUNC;
+}
+
   /* names */
 [a-zA-Z][a-zA-Z0-9]* {
   yylval.c = str_dup(yytext);

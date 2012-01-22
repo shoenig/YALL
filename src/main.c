@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include "globals.h"
 #include "stdtype.h"
+#include "functable.h"
 #include "ast.h"
 
 extern int yyparse();
@@ -17,6 +18,7 @@ main(int argc, char** argv) {
   int parse;
   int i;
   smt_init(); /* initialize symbol table */
+  uft_init(); /* init function table */
   if(argc > 1) {
     for(i=1; i<argc; i++) {
       FILE* f = fopen(argv[i], "r");

@@ -104,6 +104,7 @@ smt_put(char* name, AST* ast) {
     sym->ast = ast;
 }
 
+
   /* REMOVE ENTIRE chain */
 void
 smt_del(char* name) {

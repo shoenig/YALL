@@ -11,6 +11,7 @@
 typedef struct sym_ {
   char* name;
   AST* ast;
+  bool isFunc;
   struct sym_* next;
 } Symbol;
 

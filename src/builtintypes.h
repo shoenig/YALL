@@ -9,27 +9,29 @@
 
 /* evaluatable types */
 typedef enum {
-  ET_INVALID = 70, // !
-  ET_INT,         // I
-  ET_FLOAT,      // F
-  ET_BOOL,       // Z
-  ET_LIST,       // L
-  ET_REFERENCE   // R
+  ET_INVALID = 70,
+  ET_INT,
+  ET_FLOAT,
+  ET_BOOL,
+  ET_LIST,
+  ET_REFERENCE,
 } EVALTYPE;
 
 /* ast types */
 typedef enum {
-  AST_INVALID = 0,   // !
-  AST_INT,           // I
-  AST_FLOAT,         // F
-  AST_MINUS,         // M
-  AST_BOOL,          // Z
-  AST_LIST,          // L
-  AST_LIST_ELEMENT,  // E
-  AST_REFERENCE,     // R
-  AST_LIST_FUNC,     // w
-  AST_BUILTIN_FUNC,  // B
-  AST_BOOLEAN_FUNC,  // T
+  AST_INVALID = 0,
+  AST_INT,
+  AST_FLOAT,
+  AST_MINUS,
+  AST_BOOL,
+  AST_LIST,
+  AST_LIST_ELEMENT,
+  AST_REFERENCE,
+  AST_LIST_FUNC,
+  AST_BUILTIN_FUNC,
+  AST_BOOLEAN_FUNC,
+  AST_DEF_USERFUNC,
+  AST_CALL_USERFUNC,
   AST_AMPER,
   AST_PIPE,
   AST_EQ,
@@ -58,7 +60,9 @@ typedef enum {
   B_defbool,
   B_deflist,
   B_if,
-  B_with
+  B_with,
+  B_ufunc,
+  B_defufunc
 } bif;
 
 /* {in}equalities  */

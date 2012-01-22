@@ -135,6 +135,16 @@ new_list_element(AST* e, AST* next) {
   return ast;
 }
 
+/* AST* */
+/* new_call_userfunc(char* funcname, AST* arglist, AST* body) { */
+/*   AST* ast = alloc_ast(sizeof(AST)); */
+/*   ast->nodetype = AST_USERFUNC; */
+/*   ast->e.type = ET_USERFUNC; */
+/*   ast->left = arglist; */
+/*   ast->right = body; */
+/*   return ast; */
+/* } */
+
 /* allocate an AST, but only big enough for the type
    of node that is actually going to be created
 */
@@ -152,7 +162,8 @@ alloc_ast(uint64 size) {
 
 /* basically assume we have a ref type, which we can't eval because
    the symtable doesn't have anything, we just want the char* name */
-char* get_ref_name(AST* tree) {
+char*
+get_ref_name(AST* tree) {
   if(tree->nodetype != AST_REFERENCE)
     crash("not a ref type in get_ref_name: %s", astdec(tree->nodetype));
   return tree->e.val.str;
@@ -172,10 +183,9 @@ ast_wrap(evaltype e) {
   case ET_BOOL:
     tmp = new_boolval(e.val.bool);
     break;
-  case ET_LIST: {
+  case ET_LIST:
     tmp = new_list(e.val.list->head);
     break;
-  }
   default:
     tmp = NULL;
     crash("cannot wrap type: (%d) %c", e.type, e.type);
@@ -242,6 +252,14 @@ eval(AST* tree) {
     if(!s)
       crash("undefined variable: %s", tree->e.val.str);
     eret = eval(s->ast);
+    break;
+  }
+
+  case AST_DEF_USERFUNC: {
+    break;
+  }
+
+  case AST_CALL_USERFUNC: {
     break;
   }
 

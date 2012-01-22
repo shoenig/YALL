@@ -1,6 +1,8 @@
 /* builtintypes.h
-   This would normally be in builtins.h but C can't handle
-   the cyclic references on the enum (extern doesn't work).
+   These are the possible types for evaltype and AST nodes.
+   Don't read into their actual numeric value; I just wanted
+   to keep them in separate ranges so as to stay sane while
+   debuggining.
    Seth Hoenig 2011 (seth.a.hoenig@gmail.com)
 */
 
@@ -9,7 +11,7 @@
 
 /* evaluatable types */
 typedef enum {
-  ET_INVALID = 70,
+  ET_INVALID = 0,
   ET_INT,
   ET_FLOAT,
   ET_BOOL,
@@ -19,7 +21,7 @@ typedef enum {
 
 /* ast types */
 typedef enum {
-  AST_INVALID = 0,
+  AST_INVALID = 10,
   AST_INT,
   AST_FLOAT,
   AST_MINUS,
@@ -30,7 +32,6 @@ typedef enum {
   AST_LIST_FUNC,
   AST_BUILTIN_FUNC,
   AST_BOOLEAN_FUNC,
-  AST_DEF_USERFUNC,
   AST_CALL_USERFUNC,
   AST_AMPER,
   AST_PIPE,
@@ -43,7 +44,7 @@ typedef enum {
 
 /* built-in functions */
 typedef enum {
-  B_sqrt = 10,
+  B_sqrt = 40,
   B_abs,
   B_log,
   B_log2,
@@ -67,7 +68,7 @@ typedef enum {
 
 /* {in}equalities  */
 typedef enum {
-  T_greater_than = 30,
+  T_greater_than = 70,
   T_less_than,
   T_not_equal,
   T_equal,
@@ -79,7 +80,7 @@ typedef enum {
 
 /* list functions */
 typedef enum {
-  L_empty = 50,
+  L_empty = 80,
   L_len,
   L_peek,
   L_copy,

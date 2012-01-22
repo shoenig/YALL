@@ -1,0 +1,24 @@
+(deffunc a [] 0) : false
+(a []) : 0
+(deffunc b [x] x) : false
+(b [1]) : 1
+(b [2.2]) : 2.20
+(a []) : 0
+(b [true]) : true
+(b [[1 2 3]]) : [1 2 3]
+(defint x 9) : 9
+x : 9
+(b [false]) : false
+x : 9
+(deffunc c [a b] (* a b)) : false
+(c [3 4]) : 12
+(c [2.0 5.0]) : 10.00
+(deffunc d [x y z] (c [x (c [y z])])) : false
+(d [2 3 4]) : 24
+(deffunc e [x y z] (if (x) y z)) : false
+(e [true 3 4]) : 3
+(e [false 3 4]) : 4
+(deffunc g [list] (pop (pop list))) : false
+(g [[1 2 3 4]]) : [3 4]
+
+

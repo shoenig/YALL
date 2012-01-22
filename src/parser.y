@@ -73,7 +73,7 @@ sexp: CMP sexp sexp                 { $$ = new_cmp($1, $2, $3); }
 |      '[' list ']'                 { $$ = new_list($2); }
 |      '(' LFUNC sexp ')'           { $$ = new_listfunc($2, $3, NULL); }
 |      '(' LFUNC sexp sexp ')'      { $$ = new_listfunc($2, $3, $4); }
-/*|      '(' NAME '[' list ']' sexp ')' { $$ = new_call_userfunc($2, $4, $6); }*/
+|      '(' NAME '[' list ']' ')'    { $$ = new_call_userfunc($2, $4); }
 ;
 
  /* list (of the form: [a, b, c]) */

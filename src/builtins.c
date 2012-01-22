@@ -3,10 +3,6 @@
    Seth Hoenig 2011 (seth.a.hoenig@gmail.com)
 */
 
-/* TODO REMOVE THIS */
-#include <stdio.h>
-#include "stringer.h"
-
 #include <stdlib.h>
 #include <math.h>
 #include "ast.h"
@@ -331,8 +327,10 @@ call_builtin(AST* bifcall) {
     char* fname = get_ref_name(bifcall->left);
     /* handle args list */
     /*evaltype listeval = eval(bifcall->right); // CANNOT call eval, b/c vars are dummy refs! */
-    if(bifcall->right->nodetype != AST_LIST)
+    if(!bifcall->right || bifcall->right->nodetype != AST_LIST)
       crash("defining a function requires parameter list");
+    if(!bifcall->aux)
+      crash("defining a function requires a function body");
     List* arglist = bifcall->right->e.val.list; // oh snap, a list with unevaluated elements
     AST* temp = arglist->head;
     int argc = 0;
@@ -350,6 +348,7 @@ call_builtin(AST* bifcall) {
       char* ref = get_ref_name(temp->left);
       reflist[i] = ref;
       temp = temp->right;
+      i++;
     }
 
     AST* fbody = bifcall->aux;
@@ -474,19 +473,6 @@ _wrap_evaltype_as_element(evaltype e) {
 }
 
 AST*
-_dup_ast(AST* orig_ast) {
-  if(!orig_ast)
-    return NULL;
-  AST* new = malloc(sizeof(AST));
-  new->nodetype = orig_ast->nodetype;
-  new->e = orig_ast->e;
-  new->left = _dup_ast(orig_ast->left);
-  new->aux = _dup_ast(orig_ast->aux);
-  new->right = _dup_ast(orig_ast->right);
-  return new;
-}
-
-AST*
 _list_dup_element(AST* orig_elm) {
   if(orig_elm) {
     if(orig_elm->nodetype != AST_LIST_ELEMENT) {
@@ -497,8 +483,8 @@ _list_dup_element(AST* orig_elm) {
     AST* new = malloc(sizeof(AST));
     new->nodetype = AST_LIST_ELEMENT;
     new->e = orig_elm->e;
-    new->left = _dup_ast(orig_elm->left);
-    new->aux = _dup_ast(orig_elm->right);
+    new->left = dup_ast(orig_elm->left);
+    new->aux = dup_ast(orig_elm->right);
     new->right = _list_dup_element(orig_elm->right);
     return new;
   } else

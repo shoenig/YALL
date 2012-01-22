@@ -12,6 +12,8 @@
 #include "symtable.h"
 #include "builtins.h"
 #include "utilz.h"
+#include "ufunc.h"
+#include "functable.h"
 #include "typedecoder.h"
 #include "list.h"
 
@@ -135,15 +137,14 @@ new_list_element(AST* e, AST* next) {
   return ast;
 }
 
-/* AST* */
-/* new_call_userfunc(char* funcname, AST* arglist, AST* body) { */
-/*   AST* ast = alloc_ast(sizeof(AST)); */
-/*   ast->nodetype = AST_USERFUNC; */
-/*   ast->e.type = ET_USERFUNC; */
-/*   ast->left = arglist; */
-/*   ast->right = body; */
-/*   return ast; */
-/* } */
+AST*
+new_call_userfunc(char* funcname, AST* arglist) {
+  AST* ast = alloc_ast(sizeof(AST));
+  ast->nodetype = AST_CALL_USERFUNC;
+  ast->left = new_ref(funcname);
+  ast->right = new_list(arglist);
+  return ast;
+}
 
 /* allocate an AST, but only big enough for the type
    of node that is actually going to be created
@@ -167,6 +168,19 @@ get_ref_name(AST* tree) {
   if(tree->nodetype != AST_REFERENCE)
     crash("not a ref type in get_ref_name: %s", astdec(tree->nodetype));
   return tree->e.val.str;
+}
+
+AST*
+dup_ast(AST* orig_ast) {
+  if(!orig_ast)
+    return NULL;
+  AST* new = malloc(sizeof(AST));
+  new->nodetype = orig_ast->nodetype;
+  new->e = orig_ast->e;
+  new->left = dup_ast(orig_ast->left);
+  new->aux = dup_ast(orig_ast->aux);
+  new->right = dup_ast(orig_ast->right);
+  return new;
 }
 
 /* wrap an evaltype in an AST */
@@ -255,11 +269,54 @@ eval(AST* tree) {
     break;
   }
 
-  case AST_DEF_USERFUNC: {
-    break;
-  }
-
+    /* hold my hand */
   case AST_CALL_USERFUNC: {
+    if(tree->left->nodetype != AST_REFERENCE)
+      crash("this is not possible");
+    char* name = str_dup(get_ref_name(tree->left)); /* free this */
+    if(tree->right->nodetype != AST_LIST)
+      crash("calling a function requires a list of arguments");
+    UserFunc* func = uft_lookup(name);
+    if(!func)
+      crash("function `%s` is not definied\n", name);
+    /* check to see if # of args matches */
+    AST* list = tree->right;
+    List* arglist = eval(list).val.list;
+    AST* temp = arglist->head;
+    int i = 0;
+    while(temp) {
+      i++;
+      temp = temp->right;
+    }
+    if(i != func->argc)
+      crash("function `%s` requires %d args, given %d",
+            name, func->argc, i);
+
+    /* set up vars (using "with" mechanism) */
+    i = 0;
+    temp = arglist->head;
+    while(temp) {
+      char* argname = func->args[i];
+      AST* argval = temp->left;
+      smt_with_entry(argname, argval);
+      temp = temp->right;
+      i++;
+    }
+
+    /* eval it */
+    eret = eval(func->func_body);
+
+    /* undo args */
+    temp = arglist->head;
+    i = 0;
+    while(temp) {
+      char* argname = func->args[i];
+      smt_with_exit(argname);
+      i++;
+      temp = temp->right;
+    }
+
+    free(name);
     break;
   }
 
@@ -376,7 +433,9 @@ freeTREE(AST* tree) {
     if(tree->aux != NULL)
       freeTREE(tree->aux);
 
+
     /* fall-through to types that have TWO subtrees */
+  case AST_CALL_USERFUNC:
   case AST_EQ:
   case AST_PLUS:
   case AST_SUB:

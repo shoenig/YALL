@@ -11,7 +11,7 @@ new_user_func(char* fname, int argc, char** args, AST* body) {
   uf->argc = argc;
   uf->args = args;
   uf->func_name = fname;
-  uf->func_body = body;
+  uf->func_body = dup_ast(body);
   return uf;
 }
 

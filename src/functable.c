@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "ufunc.h"
+#include "err.h"
 #include "functable.h"
 
 void
@@ -31,7 +32,15 @@ void
 uft_put(UserFunc* uf) {
   UserFunc* temp = uft_lookup(uf->func_name);
   if(!temp) {
-    /* find an empty slot and stick it in */
+    size_t idx = 0;
+    while(idx < UFT_SIZE) {
+      if(!uft_table[idx]) {
+        uft_table[idx] = uf;
+        return;
+      }
+      idx++;
+    }
+    crash("functable is out of space");
   } else { /* out with the old, in with the new */
     delete_user_func(temp);
     temp->argc = uf->argc;

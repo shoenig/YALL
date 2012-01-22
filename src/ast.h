@@ -55,13 +55,16 @@ AST* new_cmp(cmpf func, AST* l, AST* r);
 AST* new_ref(char* ref);
 AST* new_list(AST* first);
 AST* new_list_element(AST* this, AST* next);
-/*AST* new_call_userfunc(char* funcname, AST* args_list, AST* body);*/
+AST* new_call_userfunc(char* funcname, AST* args_list);
 
 /* allocate an AST given a size */
 AST* alloc_ast(uint64 size);
 
 /* returns refname of a AST_REFERENCE type (without eval-ing) */
 char* get_ref_name(AST*);
+
+/* duplicate an AST */
+AST* dup_ast(AST*);
 
 /* wrap an evaltype in an AST */
 AST* ast_wrap(evaltype);

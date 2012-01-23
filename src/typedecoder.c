@@ -5,8 +5,8 @@
 #include "typedecoder.h"
 
 const char*
-etdec(EVALTYPE ettype) {
-  switch(ettype) {
+etdec(evaltype e) {
+  switch(e.type) {
   case ET_INT: return "INT";
   case ET_FLOAT: return "FLOAT";
   case ET_BOOL: return "BOOL";
@@ -19,8 +19,8 @@ etdec(EVALTYPE ettype) {
 }
 
 const char*
-astdec(ASTTYPE asttype) {
-  switch(asttype) {
+astdec(AST* ast) {
+  switch(ast->nodetype) {
   case AST_INT: return "INT";
   case AST_FLOAT: return "FLOAT";
   case AST_MINUS: return "ARITH-NEGATE";

@@ -156,8 +156,7 @@ alloc_ast(uint64 size) {
   ast->left = NULL;
   ast->right = NULL;
   ast->aux = NULL;
-  if(!ast)
-    crash("Out of Memory building AST");
+  yasrt(!!ast, "Out of Memory Building AST");
   return ast;
 }
 
@@ -165,8 +164,7 @@ alloc_ast(uint64 size) {
    the symtable doesn't have anything, we just want the char* name */
 char*
 get_ref_name(AST* tree) {
-  if(tree->nodetype != AST_REFERENCE)
-    crash("not a ref type in get_ref_name: %s", astdec(tree->nodetype));
+  yasrt(tree->nodetype == AST_REFERENCE, "non-ref type in get_ref_name: %s", astdec(tree));
   return tree->e.val.str;
 }
 
@@ -224,7 +222,7 @@ eval(AST* tree) {
   switch(tree->nodetype) {
   case AST_INVALID:
   case AST_LIST_ELEMENT:
-    crash("invalid ast: %s", astdec(tree->nodetype));
+    crash("invalid ast: %s", astdec(tree));
     break;
   case AST_INT: /* int */
     eret.type = ET_INT;
@@ -244,7 +242,7 @@ eval(AST* tree) {
     case ET_INT: eret.type = ET_INT; eret.val.i = -eleft.val.i; break;
     case ET_FLOAT: eret.type = ET_FLOAT; eret.val.f = -eleft.val.f; break;
     default:
-      crash("typing error e: %s", astdec(tree->e.type));
+      crash("typing error e: %s", astdec(tree));
     }
     break;
 
@@ -263,22 +261,19 @@ eval(AST* tree) {
     /* lookup in the table, if it's not there, crash */
     /* if it is there, evaluate what's in the table, set e to that */
     s = smt_lookup(tree->e.val.str);
-    if(!s)
-      crash("undefined variable: %s", tree->e.val.str);
+    yasrt(!!s, "Undefined Variable: %s", tree->e.val.str);
     eret = eval(s->ast);
     break;
   }
 
     /* hold my hand */
   case AST_CALL_USERFUNC: {
-    if(tree->left->nodetype != AST_REFERENCE)
-      crash("this is not possible");
+    yasrt(tree->left->nodetype == AST_REFERENCE, "Non reference in user-func");
     char* name = str_dup(get_ref_name(tree->left)); /* free this */
-    if(tree->right->nodetype != AST_LIST)
-      crash("calling a function requires a list of arguments");
+    yasrt(tree->right->nodetype == AST_LIST, "Calling a function requires a list of arguments");
     UserFunc* func = uft_lookup(name);
-    if(!func)
-      crash("function `%s` is not definied\n", name);
+    yasrt(!!func, "Function `%s` is not defined", name);
+
     /* check to see if # of args matches */
     AST* list = tree->right;
     List* arglist = eval(list).val.list;
@@ -288,9 +283,8 @@ eval(AST* tree) {
       i++;
       temp = temp->right;
     }
-    if(i != func->argc)
-      crash("function `%s` requires %d args, given %d",
-            name, func->argc, i);
+    yasrt(i == func->argc, "Function `%s` requires %d args, given %d",
+          name, func->argc, i);
 
     /* set up vars (using "with" mechanism) */
     i = 0;
@@ -332,9 +326,8 @@ eval(AST* tree) {
   case AST_PIPE: {
     eleft = eval(tree->left);
     eright = eval(tree->right);
-    if(eleft.type != ET_INT || eright.type != ET_INT)
-      crash("typing error (&,|): le: %s, re: %s",
-            etdec(eleft.type), etdec(eright.type));
+    yasrt((eleft.type == ET_INT && eright.type == ET_INT),
+          "typing error (&,|): le: %s, re: %s", etdec(eleft), etdec(eright));
     eret.type = ET_INT;
     if(tree->nodetype == AST_AMPER)
       eret.val.i = eleft.val.i & eright.val.i;
@@ -347,8 +340,7 @@ eval(AST* tree) {
     Symbol* s;
     /* don't eval left, just want the name */
     s = smt_lookup(tree->left->e.val.str);
-    if(!s)
-      crash("cannot assign to undeclared variable: %s", s);
+    yasrt(!!s, "cannot assign to undeclared variable: %s", tree->left->e.val.str);
     eright = eval(tree->right);  /* value to be assigned */
 
     /* TODO: fix this using cassert */
@@ -373,9 +365,8 @@ eval(AST* tree) {
     evaltype eleft = eval(tree->left);
     evaltype eright = eval(tree->right);
 
-    if(eleft.type != eright.type)
-      crash("typing error (+,-,*,/), le: %s, re: %s",
-            etdec(eleft.type), etdec(eright.type));
+    yasrt((eleft.type == eright.type), "typing error (+,-,*,/), le: %s, re: %s",
+          etdec(eleft), etdec(eright));
 
     if(eleft.type == ET_INT)
       eret.type = ET_INT;
@@ -410,14 +401,13 @@ eval(AST* tree) {
 
     default:
       crash("invalid binary built-in function: %s",
-            astdec(tree->nodetype));
+            astdec(tree));
     }
   }
   }
-  if(eret.type == ET_INVALID)
-    crash("eval did not do something right, tree->nodetype: (%d) %c",
-          tree->nodetype,
-          tree->nodetype);
+
+  yasrt((eret.type != ET_INVALID),
+        "eval did not do something right, %s", astdec(tree));
   return eret;
 }
 
@@ -468,8 +458,8 @@ freeTREE(AST* tree) {
 
   default:
     /* you probably added a node type and forgot to add it here */
-    crash("internal error in freeing tree, bad node type: (%d) %s ",
-          astdec(tree->nodetype), astdec(tree->nodetype));
+    crash("internal error in freeing tree, bad node type: %s ",
+          astdec(tree));
   }
   /* actually delete this node, (all children have been deleted) */
   free(tree);

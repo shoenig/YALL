@@ -33,7 +33,7 @@ call_builtin(AST* bifcall) {
       float64 conv = (float64)eleft.val.i;
       eret.val.f = sqrt(conv);
     } else
-      crash("need FLOAT or INT in sqrt, got: %s", etdec(eleft.type));
+      crash("need FLOAT or INT in sqrt, got: %s", etdec(eleft));
     break;
   }
 
@@ -44,7 +44,7 @@ call_builtin(AST* bifcall) {
     if(eleft.type == ET_BOOL)
       eret.val.bool = !eleft.val.bool;
     else
-      crash("need BOOLEAN in logical negation, got: %s", etdec(eleft.type));
+      crash("need BOOLEAN in logical negation, got: %s", etdec(eleft));
     break;
   }
 
@@ -58,7 +58,7 @@ call_builtin(AST* bifcall) {
       eret.type = ET_INT;
       eret.val.i = eleft.val.i < 0 ? -eleft.val.i : eleft.val.i;
     } else
-      crash("need INT or FLOAT in abs, got: %s", etdec(eleft.type));
+      crash("need INT or FLOAT in abs, got: %s", etdec(eleft));
     break;
   }
 
@@ -72,7 +72,7 @@ call_builtin(AST* bifcall) {
       float64 conv = (float64)eleft.val.i;
       eret.val.f = log(conv);
     } else
-      crash("need INT or FLOAT in log, got: %s", etdec(eleft.type));
+      crash("need INT or FLOAT in log, got: %s", etdec(eleft));
     break;
   }
 
@@ -86,7 +86,7 @@ call_builtin(AST* bifcall) {
       float64 conv = (float64)eleft.val.i;
       eret.val.f = log10(conv);
     } else
-      crash("need INT or FLOAT in log10, got: %s", etdec(eleft.type));
+      crash("need INT or FLOAT in log10, got: %s", etdec(eleft));
     break;
   }
 
@@ -100,7 +100,7 @@ call_builtin(AST* bifcall) {
       float64 conv = (float64)eleft.val.i;
       eret.val.f = (log10(conv)/log10(2.0));
     } else
-      crash("need INT or FLOAT in log2, got: %s", etdec(eleft.type));
+      crash("need INT or FLOAT in log2, got: %s", etdec(eleft));
     break;
   }
 
@@ -111,7 +111,7 @@ call_builtin(AST* bifcall) {
     if( (eleft.type != ET_INT && eleft.type != ET_FLOAT) ||
         (eright.type != ET_INT && eright.type != ET_FLOAT))
       crash("need INT or FLOAT in pow, got: %s, %s",
-            etdec(eleft.type), etdec(eright.type));
+            etdec(eleft), etdec(eright));
     if(eleft.type == ET_INT && eright.type == ET_INT) { /* return an int */
       float64 f = pow(eleft.val.i, eright.val.i);
       int64 i = (int64)f;
@@ -136,7 +136,7 @@ call_builtin(AST* bifcall) {
   case B_fact: {
     eleft = eval(bifcall->left);
     if(eleft.type != ET_INT)
-      crash("need INT in !, got: %s", etdec(eleft.type));
+      crash("need INT in !, got: %s", etdec(eleft));
     else {
       int64 i = eleft.val.i;
       int64 v = 1;
@@ -153,7 +153,7 @@ call_builtin(AST* bifcall) {
     eleft = eval(bifcall->left);
     if(eleft.type != ET_INT && eleft.type != ET_FLOAT)
       crash("need INT or FLOAT in float conversion, got: %s",
-            etdec(eleft.type));
+            etdec(eleft));
     else {
       /* must be I or F, if it's F, no need to do anything */
       eret.type = ET_FLOAT;
@@ -170,7 +170,7 @@ call_builtin(AST* bifcall) {
     eleft = eval(bifcall->left);
     if(eleft.type != ET_INT && eleft.type != ET_FLOAT)
       crash("need INT or FLOAT in int conversion, got: %s",
-            etdec(eleft.type));
+            etdec(eleft));
     else {
       /* must be I or F, if I, no need to do anything */
       eret.type = ET_INT;
@@ -189,7 +189,7 @@ call_builtin(AST* bifcall) {
     if(eleft.type == ET_FLOAT)
       eret.val.f = floor(eleft.val.f);
     else
-      crash("need FLOAT in floor, got: %s", etdec(eleft.type));
+      crash("need FLOAT in floor, got: %s", etdec(eleft));
     break;
   }
 
@@ -200,7 +200,7 @@ call_builtin(AST* bifcall) {
     if(eleft.type == ET_FLOAT)
       eret.val.f = ceil(eleft.val.f);
     else
-      crash("need FLOAT in ceil, got: %s", etdec(eleft.type));
+      crash("need FLOAT in ceil, got: %s", etdec(eleft));
     break;
   }
 
@@ -210,7 +210,7 @@ call_builtin(AST* bifcall) {
       crash("need expression in defint");
     eright = eval(bifcall->right);
     if(eright.type != ET_INT)
-      crash("need INT in defint, got: %s", etdec(eright.type));
+      crash("need INT in defint, got: %s", etdec(eright));
     smt_put(get_ref_name(bifcall->left) , new_intval(eright.val.i));
     eret.type = ET_INT;
     eret.val.i = eright.val.i;
@@ -223,7 +223,7 @@ call_builtin(AST* bifcall) {
       crash("need expression in deffloat");
     eright = eval(bifcall->right);
     if(eright.type != ET_FLOAT)
-      crash("need FLOAT in deffloat, got: %s", etdec(eright.type));
+      crash("need FLOAT in deffloat, got: %s", etdec(eright));
     smt_put(get_ref_name(bifcall->left), new_floatval(eright.val.f));
     eret.type = ET_FLOAT;
     eret.val.f = eright.val.f;
@@ -236,7 +236,7 @@ call_builtin(AST* bifcall) {
       crash("need expression in defbool");
     eright = eval(bifcall->right);
     if(eright.type != ET_BOOL)
-      crash("need BOOLEAN in defbool, got: %s", etdec(eright.type));
+      crash("need BOOLEAN in defbool, got: %s", etdec(eright));
     smt_put(get_ref_name(bifcall->left), new_boolval(eright.val.bool));
     eret.type = ET_BOOL;
     eret.val.bool = eright.val.bool;
@@ -249,7 +249,7 @@ call_builtin(AST* bifcall) {
       crash("need expression in deflist");
     eright = eval(bifcall->right);
     if(eright.type != ET_LIST)
-      crash("need LIST in deflist, got: %s", etdec(eright.type));
+      crash("need LIST in deflist, got: %s", etdec(eright));
     smt_put(get_ref_name(bifcall->left), new_list(eright.val.list->head));
     eret.type = ET_LIST;
     eret.val.list = eright.val.list;
@@ -263,7 +263,7 @@ call_builtin(AST* bifcall) {
     eleft = eval(bifcall->left); /* the boolean conditional */
     if(eleft.type != ET_BOOL)
       crash("need BOOLEAN in if conditional, got: %s",
-            etdec(eleft.type));
+            etdec(eleft));
     if(eleft.val.bool) { /* execute right (the true condition) */
       eret = eval(bifcall->right);
     } else {
@@ -278,10 +278,9 @@ call_builtin(AST* bifcall) {
   }
     /* with statement TODO: better checking */
   case B_with: {
-    if((!bifcall->left) || (bifcall->left->nodetype != AST_LIST))
-      crash("need LIST in lhs of with statement");
-    if((!bifcall->right))
-      crash("need expression in with statement");
+    yasrt((!!bifcall->left) && (bifcall->left->nodetype == AST_LIST),
+          "need LIST in lhs of with statement");
+    yasrt((!!bifcall->right), "need expression in with statement");
 
     /* need to setup symbol table */
     AST* outerlist_ast = (bifcall->left);
@@ -322,8 +321,8 @@ call_builtin(AST* bifcall) {
     /* create and store a new user-defined function. need to keep track of the names
        of the variables. (so that we know how to handle their scope later on) */
   case B_defufunc: {
-    if(bifcall->left->nodetype != AST_REFERENCE)
-      crash("defining a function requires valid function name");
+    yasrt( (bifcall->left->nodetype == AST_REFERENCE) ,
+           "defining a function requires valid function name");
     char* fname = get_ref_name(bifcall->left);
     /* handle args list */
     /*evaltype listeval = eval(bifcall->right); // CANNOT call eval, b/c vars are dummy refs! */
@@ -384,7 +383,7 @@ call_boolfunc(AST* bftree) {
       else if(l.type == ET_BOOL)
         res.val.bool = (l.val.bool != r.val.bool);
       else
-        crash("invalid type in != : %s", astdec(l.type));
+        crash("invalid type in != : %s", etdec(l));
     }
     break;
   case T_equal:
@@ -398,7 +397,7 @@ call_boolfunc(AST* bftree) {
       else if(l.type == ET_BOOL)
         res.val.bool = (l.val.bool == r.val.bool);
       else
-        crash("invalid type in == : %s", astdec(l.type));
+        crash("invalid type in == : %s", etdec(l));
     break;
   case T_greater_than:
     if(l.type == ET_INT && r.type == ET_INT)
@@ -407,8 +406,8 @@ call_boolfunc(AST* bftree) {
       res.val.bool = (l.val.f > r.val.f);
     else
       crash("type conflict in > : %s, %s",
-            astdec(l.type),
-            astdec(r.type));
+            etdec(l),
+            etdec(r));
     break;
   case T_less_than:
     if(l.type == ET_INT && r.type == ET_INT)
@@ -417,8 +416,8 @@ call_boolfunc(AST* bftree) {
       res.val.bool = (l.val.f < r.val.f);
     else
       crash("type conflict in < : %s, %s",
-            astdec(l.type),
-            astdec(r.type));
+            etdec(l),
+            etdec(r));
     break;
   case T_greater_than_equal:
     if(l.type == ET_INT && r.type == ET_INT)
@@ -427,8 +426,8 @@ call_boolfunc(AST* bftree) {
       res.val.bool = (l.val.f >= r.val.f);
     else
       crash("type conflict in >= : %s, %s",
-            astdec(l.type),
-            astdec(r.type));
+            etdec(l),
+            etdec(r));
     break;
   case T_less_than_equal:
     if(l.type == ET_INT && r.type == ET_INT)
@@ -437,22 +436,22 @@ call_boolfunc(AST* bftree) {
       res.val.bool = (l.val.f <= r.val.f);
     else
       crash("type conflict in <= : %s, %s",
-            astdec(l.type),
-            astdec(r.type));
+            etdec(l),
+            etdec(r));
     break;
   case T_or:
     if(l.type == ET_BOOL && r.type == ET_BOOL)
       res.val.bool = (l.val.bool || r.val.bool);
     else
       crash("need BOOLEAN in or, got: %s, %s",
-            astdec(l.type), astdec(r.type));
+            etdec(l), etdec(r));
     break;
   case T_and:
     if(l.type == ET_BOOL && r.type == ET_BOOL)
       res.val.bool = (l.val.bool && r.val.bool);
     else
       crash("need BOOLEAN in and, got: %s, %s",
-            astdec(l.type), astdec(r.type));
+            etdec(l), etdec(r));
     break;
 
   default:
@@ -512,7 +511,7 @@ call_listfunc(AST* listfunc) {
   case L_empty: {
     eleft = eval(listfunc->left);
     if(!eleft.type == ET_LIST)
-      crash("need LIST in empty, got: %s", etdec(eleft.type));
+      crash("need LIST in empty, got: %s", etdec(eleft));
     eret.type = ET_BOOL;
     eret.val.bool = (eleft.val.list->head) ? false : true;
     break;
@@ -521,7 +520,7 @@ call_listfunc(AST* listfunc) {
   case L_len: {
     eleft = eval(listfunc->left);
     if(eleft.type != ET_LIST)
-      crash("need LIST in size, got: %s", etdec(eleft.type));
+      crash("need LIST in size, got: %s", etdec(eleft));
     eret.type = ET_INT;
     int size = 0;
     AST* elem_ptr = eleft.val.list->head;
@@ -536,7 +535,7 @@ call_listfunc(AST* listfunc) {
   case L_peek: {
     eleft = eval(listfunc->left);
     if(eleft.type != ET_LIST)
-      crash("need LIST in peek, got: %s", etdec(eleft.type));
+      crash("need LIST in peek, got: %s", etdec(eleft));
     if(!eleft.val.list->head)
       crash("cannot peek empty list");
     eret = eval(eleft.val.list->head->left);
@@ -546,7 +545,7 @@ call_listfunc(AST* listfunc) {
   case L_copy: {
     eleft = eval(listfunc->left);
     if(eleft.type != ET_LIST)
-      crash("need LIST in copy, got: %s", etdec(eleft.type));
+      crash("need LIST in copy, got: %s", etdec(eleft));
     eret = _list_copy(eleft.val.list);
     break;
   }
@@ -554,7 +553,7 @@ call_listfunc(AST* listfunc) {
   case L_pop: {
     eleft = eval(listfunc->left);
     if(eleft.type != ET_LIST)
-      crash("need LIST in pop, got: %s", etdec(eleft.type));
+      crash("need LIST in pop, got: %s", etdec(eleft));
     eret = _list_copy(eleft.val.list);
     if(!eret.val.list->head)
       crash("cannot pop empty LIST");
@@ -567,7 +566,7 @@ call_listfunc(AST* listfunc) {
     evaltype eright; /* r is list, l is value to push */
     eright = eval(listfunc->right);
     if(eright.type != ET_LIST)
-      crash("need LIST in push, got: %s", etdec(eright.type));
+      crash("need LIST in push, got: %s", etdec(eright));
     eret = _list_copy(eright.val.list);
     if(eret.val.list->head == NULL) {
       eret.val.list->head = _wrap_evaltype_as_element(eval(listfunc->left));

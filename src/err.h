@@ -6,7 +6,10 @@
 #ifndef YALL_ERR_H
 #define YALL_ERR_H
 
-void yyerror(char* s, ...);
-void crash(char* s, ...);
+#include "stdtype.h"
+
+void yyerror(char*, ...);
+void crash(char*, ...);
+void yasrt(bool, char*, ...);
 
 #endif

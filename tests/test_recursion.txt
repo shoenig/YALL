@@ -1,0 +1,63 @@
+(deffunc foo [x] (if (== x 1) 1 (foo [(- x 1)]))) : false
+(foo [1]) : 1
+(foo [2]) : 1
+(foo [99]) : 1
+(defint x 18) : 18
+(foo [x]) : 1
+(with [[x 4]] (foo [x])) : 1
+
+(deffunc fct [x] (if (== x 0) 1 (* x (fct [(- x 1)])))) : false
+(fct [0]) : 1
+(fct [1]) : 1
+(fct [2]) : 2
+(fct [3]) : 6
+(fct [6]) : 720
+x : 18
+(fct [x]) : 6402373705728000
+(with [[x 5]] (fct [x])) : 120
+x : 18 
+
+(deffunc fib [x] (if (<= x 2) 1 (+ (fib [(- x 1)]) (fib [(- x 2)])))) : false
+x : 18
+(fib [2]) : 1
+(fib [3]) : 2
+(fib [2]) : 1
+(fib [3]) : 2
+(fib [4]) : 3
+(fib [5]) : 5
+(fib [6]) : 8
+(fib [7]) : 13
+(fib [8]) : 21
+x : 18
+(fib [x]) : 2584
+(with [[x 6]] (fib [x])) : 8
+x : 18
+
+(foo [1]) : 1
+(foo [2]) : 1
+(foo [99]) : 1
+(defint x 18) : 18
+(foo [x]) : 1
+(with [[x 4]] (foo [x])) : 1
+(fct [0]) : 1
+(fct [1]) : 1
+(fct [2]) : 2
+(fct [3]) : 6
+(fct [6]) : 720
+x : 18
+(fct [x]) : 6402373705728000
+(with [[x 5]] (fct [x])) : 120
+x : 18
+(fib [2]) : 1
+(fib [3]) : 2
+(fib [2]) : 1
+(fib [3]) : 2
+(fib [4]) : 3
+(fib [5]) : 5
+(fib [6]) : 8
+(fib [7]) : 13
+(fib [8]) : 21
+x : 18
+(fib [x]) : 2584
+(with [[x 6]] (fib [x])) : 8
+x : 18

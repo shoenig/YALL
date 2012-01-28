@@ -21,4 +21,3 @@ x : 9
 (deffunc g [list] (pop (pop list))) : false
 (g [[1 2 3 4]]) : [3 4]
 
-

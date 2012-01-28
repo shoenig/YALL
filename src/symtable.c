@@ -3,6 +3,8 @@
    Seth Hoenig 2011 (seth.a.hoenig@gmail.com)
 */
 
+/* #include <stdio.h> */ /* for debugging only! */
+
 #include <string.h>
 #include <stdlib.h>
 #include "err.h"
@@ -21,6 +23,7 @@ smt_init() {
 /* returns pointer to the Symbol, NULL if ref is not in the table */
 Symbol*
 smt_lookup(char* name) {
+  /* printf("smt_lookup: %s\n", name); */
   size_t idx = 0;
   while(idx < TABLESIZE) {
     if(table[idx] && strcmp(name, table[idx]->name) == 0) {
@@ -36,12 +39,13 @@ smt_lookup(char* name) {
 
 void
 smt_create_symbol(char* name, AST* ast) {
+  /* printf("smt_create_symbol: %s\n", name); */
   size_t idx = 0;
   while(idx < TABLESIZE) {
     if(table[idx] == NULL) {
       table[idx] = malloc(sizeof(AST));
       table[idx]->name = name;
-      table[idx]->ast = ast;
+      table[idx]->ast = dup_ast(ast);
       table[idx]->next = NULL;
       return;
     }
@@ -53,19 +57,23 @@ smt_create_symbol(char* name, AST* ast) {
 /* APPEND to the chain */
 void
 smt_with_entry(char* name, AST* ast) {
+  /* printf("smt_with_entry: %s\n", name); */
   Symbol* sym = smt_lookup(name);
+  AST* toput = ast_wrap(eval(ast));
   if(!sym)
-    smt_create_symbol(name, ast);
+    smt_create_symbol(name, toput);
   else {
-    sym->next = malloc(sizeof(AST));
+    sym->next = malloc(sizeof(Symbol));
     sym->next->name = name;
-    sym->next->ast = ast;
+    sym->next->ast = toput;
+    sym->next->next = NULL;
   }
 }
 
 /* REMOVE the end of the chain */
 bool
 smt_with_exit(char* name) {
+  /* printf("smt_with_exit: %s\n", name); */
   /* TODO, implement doubly linked list so i can just fiddle
      with back pointers instead of re-implementing(ish) smt_lookup */
   size_t idx = 0;
@@ -97,11 +105,12 @@ smt_with_exit(char* name) {
 /* UPDATE last element in chain */
 void
 smt_put(char* name, AST* ast) {
+  /* printf("smt_put: %s\n", name); */
   Symbol* sym = smt_lookup(name);
   if(!sym)
     smt_create_symbol(name, ast);
   else
-    sym->ast = ast;
+    sym->ast = dup_ast(ast);
 }
 
 

@@ -268,9 +268,10 @@ eval(AST* tree) {
 
     /* hold my hand */
   case AST_CALL_USERFUNC: {
-    yasrt(tree->left->nodetype == AST_REFERENCE, "Non reference in user-func");
+    yasrt(tree->left->nodetype == AST_REFERENCE, "Non reference in userfunc");
     char* name = str_dup(get_ref_name(tree->left)); /* free this */
-    yasrt(tree->right->nodetype == AST_LIST, "Calling a function requires a list of arguments");
+    yasrt(tree->right->nodetype == AST_LIST,
+          "Calling a function requires a list of arguments");
     UserFunc* func = uft_lookup(name);
     yasrt(!!func, "Function `%s` is not defined", name);
 

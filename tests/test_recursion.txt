@@ -61,3 +61,17 @@ x : 18
 (fib [x]) : 2584
 (with [[x 6]] (fib [x])) : 8
 x : 18
+
+(deffunc sum [list] (if (empty list) 0 (+ (peek list) (sum [(pop list)])))) : false
+(sum [[]]) : 0
+(sum [[1 2 3]]) : 6
+(sum [[9 8 7 3 2 1]]) : 30
+(deflist baz [1 2 3]) : [1 2 3]
+(len baz) : 3
+(peek baz) : 1
+(= baz (pop baz)) : [2 3]
+(= baz (pop baz)) : [3]
+(peek baz) : 3
+(= baz (pop baz)) : []
+(len baz) : 0
+(empty baz) : true

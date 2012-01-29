@@ -58,7 +58,9 @@ str_ref(char* str) {
 /* this probably leaks memory. */
 char*
 str_list(List* list) {
-  char* nstr = malloc(sizeof(char) * 3);
+  char* nstr = malloc(sizeof(char) * 2);
+  nstr[0] = '\0';
+  nstr[1] = '\0';
   AST* ast = list->head;
   while(ast != NULL) {
     nstr = str_ezcat(nstr, " ");

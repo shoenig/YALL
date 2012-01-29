@@ -16,6 +16,7 @@
 #include "functable.h"
 #include "typedecoder.h"
 #include "list.h"
+#include "lfunc.h"
 
 AST*
 new_ast(int ntype, AST* l, AST* r) {
@@ -174,7 +175,7 @@ dup_ast(AST* orig_ast) {
     return NULL;
   AST* new = malloc(sizeof(AST));
   new->nodetype = orig_ast->nodetype;
-  new->e = orig_ast->e;
+  new->e = orig_ast->e; // duplicate this?
   new->left = dup_ast(orig_ast->left);
   new->aux = dup_ast(orig_ast->aux);
   new->right = dup_ast(orig_ast->right);

@@ -11,6 +11,7 @@
 #include "err.h"
 #include "symtable.h"
 #include "ufunc.h"
+#include "lfunc.h"
 #include "functable.h"
 #include "typedecoder.h"
 
@@ -461,44 +462,6 @@ call_boolfunc(AST* bftree) {
   return res;
 }
 
-AST*
-_wrap_evaltype_as_element(evaltype e) {
-  AST* inner = ast_wrap(e);
-  AST* elem = malloc(sizeof(AST));
-  elem->nodetype = AST_LIST_ELEMENT;
-  elem->left = inner;
-  /* elem->right gets set later (to next element) */
-  return elem;
-}
-
-AST*
-_list_dup_element(AST* orig_elm) {
-  if(orig_elm) {
-    if(orig_elm->nodetype != AST_LIST_ELEMENT) {
-      crash("cannot duplicate non list element (%d) %c",
-            orig_elm->nodetype,
-            orig_elm->nodetype);
-    }
-    AST* new = malloc(sizeof(AST));
-    new->nodetype = AST_LIST_ELEMENT;
-    new->e = orig_elm->e;
-    new->left = dup_ast(orig_elm->left);
-    new->aux = dup_ast(orig_elm->right);
-    new->right = _list_dup_element(orig_elm->right);
-    return new;
-  } else
-    return NULL;
-}
-
-evaltype
-_list_copy(List* orig) {
-  evaltype ret;
-  ret.type = ET_LIST;
-  ret.val.list = malloc(sizeof(List));
-  ret.val.list->head = _list_dup_element(orig->head); /* kick off recursion */
-  return ret;
-}
-
 evaltype
 call_listfunc(AST* listfunc) {
   /*  evaltype right;*/
@@ -522,12 +485,7 @@ call_listfunc(AST* listfunc) {
     if(eleft.type != ET_LIST)
       crash("need LIST in size, got: %s", etdec(eleft));
     eret.type = ET_INT;
-    int size = 0;
-    AST* elem_ptr = eleft.val.list->head;
-    while(elem_ptr != NULL) {
-      size++;
-      elem_ptr = elem_ptr->right;
-    }
+    int size = list_length(eleft.val.list);
     eret.val.i = size;
     break;
   }
@@ -546,7 +504,7 @@ call_listfunc(AST* listfunc) {
     eleft = eval(listfunc->left);
     if(eleft.type != ET_LIST)
       crash("need LIST in copy, got: %s", etdec(eleft));
-    eret = _list_copy(eleft.val.list);
+    eret = list_dup(eleft.val.list);
     break;
   }
 
@@ -554,7 +512,7 @@ call_listfunc(AST* listfunc) {
     eleft = eval(listfunc->left);
     if(eleft.type != ET_LIST)
       crash("need LIST in pop, got: %s", etdec(eleft));
-    eret = _list_copy(eleft.val.list);
+    eret = list_dup(eleft.val.list);
     if(!eret.val.list->head)
       crash("cannot pop empty LIST");
     else
@@ -567,12 +525,12 @@ call_listfunc(AST* listfunc) {
     eright = eval(listfunc->right);
     if(eright.type != ET_LIST)
       crash("need LIST in push, got: %s", etdec(eright));
-    eret = _list_copy(eright.val.list);
+    eret = list_dup(eright.val.list);
     if(eret.val.list->head == NULL) {
-      eret.val.list->head = _wrap_evaltype_as_element(eval(listfunc->left));
+      eret.val.list->head = list_wrap_evaltype_as_element(eval(listfunc->left));
       eret.val.list->head->right = NULL;
     } else {
-      AST* nhead = _wrap_evaltype_as_element(eval(listfunc->left));
+      AST* nhead = list_wrap_evaltype_as_element(eval(listfunc->left));
       nhead->right = eret.val.list->head;
       eret.val.list->head = nhead;
     }
